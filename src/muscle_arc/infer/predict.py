@@ -46,7 +46,13 @@ def predict_mask(
     else:
         thresh = 0.5
     mask = (pred > thresh).astype(np.uint8)
-    mask = cv2.medianBlur(mask, 5)
+    # Avoid median blur on sparse fascicle predictions — it erases thin lines.
+    if int(mask.sum()) > 5000:
+        mask = cv2.medianBlur(mask, 5)
+    else:
+        # Light cleanup that preserves thin structures
+        kernel = np.ones((3, 3), np.uint8)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
     return cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
 
 
