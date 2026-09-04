@@ -1,0 +1,48 @@
+# Cursor / editor
+.cursor/
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+venv/
+.env
+.env.*
+
+# Kaggle / secrets
+kaggle.json
+*.pem
+
+# Data (download via scripts; keep placeholders)
+data/raw/**
+!data/raw/.gitkeep
+data/processed/**
+!data/processed/.gitkeep
+
+# Artifacts
+*.pt
+*.pth
+*.ckpt
+*.onnx
+wandb/
+outputs/
+runs/
+mlruns/
+.ipynb_checkpoints/
+
+# Submissions (keep folder, ignore CSVs)
+submissions/*.csv
+!submissions/.gitkeep
+
+# Experiments outputs
+experiments/**
+!experiments/.gitkeep
