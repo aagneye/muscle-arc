@@ -108,17 +108,19 @@ def pennation_angle_deg(fasc_mask: np.ndarray, apo_mask: np.ndarray | None = Non
     if fasc_line is None:
         return float("nan")
     _, fasc_dir = fasc_line
+    horizontal = np.array([1.0, 0.0])
+    fasc_vs_h = _angle_between_dirs(fasc_dir, horizontal)
 
     if apo_mask is not None:
         bands = _apo_bands(apo_mask)
         if bands is not None:
             deep_line = _fit_line(bands[1])
             if deep_line is not None:
-                return _angle_between_dirs(fasc_dir, deep_line[1])
-
-    # Angle vs horizontal (deep apo often near-horizontal)
-    horizontal = np.array([1.0, 0.0])
-    return _angle_between_dirs(fasc_dir, horizontal)
+                deep_vs_h = _angle_between_dirs(deep_line[1], horizontal)
+                # Deep apo should be near-horizontal; if not, trust fascicle vs horizontal.
+                if deep_vs_h <= 20.0:
+                    return _angle_between_dirs(fasc_dir, deep_line[1])
+    return fasc_vs_h
 
 
 def fascicle_length_px(fasc_mask: np.ndarray, apo_mask: np.ndarray | None = None) -> float:
@@ -126,6 +128,18 @@ def fascicle_length_px(fasc_mask: np.ndarray, apo_mask: np.ndarray | None = None
     if fasc_line is None:
         return float("nan")
     f0, fd = fasc_line
+    h, w = fasc_mask.shape
+    diag = float(np.hypot(h, w))
+
+    def _pca_extent() -> float:
+        ys, xs = np.where(fasc_mask > 0)
+        if len(xs) < 15:
+            return float("nan")
+        pts = np.column_stack([xs.astype(np.float64), ys.astype(np.float64)])
+        pts_c = pts - pts.mean(axis=0, keepdims=True)
+        _u, _s, vt = np.linalg.svd(pts_c, full_matrices=False)
+        proj = pts_c @ vt[0]
+        return float(proj.max() - proj.min())
 
     if apo_mask is not None:
         bands = _apo_bands(apo_mask)
@@ -136,17 +150,19 @@ def fascicle_length_px(fasc_mask: np.ndarray, apo_mask: np.ndarray | None = None
                 p1 = _line_intersection(f0, fd, s_line[0], s_line[1])
                 p2 = _line_intersection(f0, fd, d_line[0], d_line[1])
                 if p1 is not None and p2 is not None:
-                    return float(np.linalg.norm(p1 - p2))
+                    # Reject unstable intersections (near-parallel → huge length)
+                    length = float(np.linalg.norm(p1 - p2))
+                    # Prefer intersections that fall near the image
+                    in_pad = (
+                        -0.25 * w <= p1[0] <= 1.25 * w
+                        and -0.25 * h <= p1[1] <= 1.25 * h
+                        and -0.25 * w <= p2[0] <= 1.25 * w
+                        and -0.25 * h <= p2[1] <= 1.25 * h
+                    )
+                    if in_pad and 5.0 < length < 1.5 * diag:
+                        return length
 
-    # PCA extent fallback on fascicle pixels
-    ys, xs = np.where(fasc_mask > 0)
-    if len(xs) < 20:
-        return float("nan")
-    pts = np.column_stack([xs.astype(np.float64), ys.astype(np.float64)])
-    pts_c = pts - pts.mean(axis=0, keepdims=True)
-    _u, _s, vt = np.linalg.svd(pts_c, full_matrices=False)
-    proj = pts_c @ vt[0]
-    return float(proj.max() - proj.min())
+    return _pca_extent()
 
 
 def _line_intersection(
