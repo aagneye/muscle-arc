@@ -13,14 +13,14 @@ from muscle_arc.geometry.metrics import ArchitectureParams, clip_params, estimat
 
 
 @torch.no_grad()
-def predict_mask(
+def predict_prob(
     model: nn.Module,
     image_gray: np.ndarray,
     img_size: int,
     device: torch.device,
     tta_hflip: bool = True,
-    mask_percentile: float = 75.0,
 ) -> np.ndarray:
+    """Return soft probability map resized to the original image size."""
     h, w = image_gray.shape[:2]
     resized = cv2.resize(image_gray, (img_size, img_size), interpolation=cv2.INTER_AREA)
 
@@ -34,10 +34,22 @@ def predict_mask(
     pred = _infer(resized)
     if tta_hflip:
         pred = 0.5 * (pred + np.fliplr(_infer(np.fliplr(resized).copy())))
+    return cv2.resize(pred.astype(np.float32), (w, h), interpolation=cv2.INTER_LINEAR)
 
-    # Prefer fixed probability threshold; percentile forces ~constant mask area.
+
+@torch.no_grad()
+def predict_mask(
+    model: nn.Module,
+    image_gray: np.ndarray,
+    img_size: int,
+    device: torch.device,
+    tta_hflip: bool = True,
+    mask_percentile: float = 75.0,
+) -> np.ndarray:
+    h, w = image_gray.shape[:2]
+    pred = predict_prob(model, image_gray, img_size, device, tta_hflip)
+    # predict_prob already at full res; threshold in place
     if mask_percentile and 0 < mask_percentile < 100:
-        # Backward-compat: values > 1 treated as percentile; else probability.
         thresh = (
             float(np.percentile(pred, mask_percentile))
             if mask_percentile > 1
@@ -50,10 +62,9 @@ def predict_mask(
     if int(mask.sum()) > 5000:
         mask = cv2.medianBlur(mask, 5)
     else:
-        # Light cleanup that preserves thin structures
         kernel = np.ones((3, 3), np.uint8)
         mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
-    return cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
+    return mask
 
 
 def load_sample_submission(path: Path, sep: str = ";") -> pd.DataFrame:
