@@ -16,7 +16,7 @@ class ArchitectureParams:
 def _fit_line(mask: np.ndarray) -> tuple[np.ndarray, np.ndarray] | None:
     """Return (point, unit_direction) for a binary mask, or None."""
     ys, xs = np.where(mask > 0)
-    if len(xs) < 30:
+    if len(xs) < 15:
         return None
     pts = np.column_stack([xs, ys]).astype(np.float32)
     vx, vy, x0, y0 = cv2.fitLine(pts, cv2.DIST_L2, 0, 0.01, 0.01)
