@@ -34,10 +34,10 @@ train:
 
 infer:
   tta_hflip: true
-  # Probability threshold (not percentile)
-  mask_percentile: 0.5
-  # Calibrated against sample_submission GT rows (IMG_00001/00002)
-  mm_per_pixel: 0.07
+  # Probability threshold (not percentile). Keep moderate for sparse fascicles.
+  mask_percentile: 0.35
+  # Seed scale; calibrate_predict.py refits from sample GT.
+  mm_per_pixel: 0.06
   clip:
     pa_deg: [1.0, 45.0]
     fl_mm: [20.0, 150.0]
