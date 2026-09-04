@@ -4,11 +4,12 @@ device: cuda
 
 data:
   root: data/raw
-  apo_imgs: apo_imgs
-  apo_masks: apo_masks
-  fasc_imgs: fasc_imgs
-  fasc_masks: fasc_masks
-  test_images: test_images
+  # Kaggle zip uses *_v1 / *_v2 folder names
+  apo_imgs: apo_imgs_v1
+  apo_masks: apo_masks_v1
+  fasc_imgs: fasc_imgs_v1
+  fasc_masks: fasc_masks_v1
+  test_images: test_images_v2
   sample_submission: sample_submission.csv
   # sample_submission may use ';' as separator on Kaggle
   csv_sep: ";"
@@ -22,7 +23,7 @@ model:
   classes: 1
 
 train:
-  batch_size: 8
+  batch_size: 4
   epochs: 40
   lr: 3.0e-4
   weight_decay: 1.0e-4
