@@ -76,12 +76,13 @@ def main() -> None:
         )
     raw = pd.DataFrame(rows)
 
-    # Calibrate scale using sample_submission GT if available
-    scale = float(infer.get("mm_per_pixel", 0.07))
+    # Calibrate separate scales for MT and FL using sample_submission GT
+    mt_scale = float(infer.get("mm_per_pixel", 0.06))
+    fl_scale = mt_scale
     if paths.sample_submission.exists():
         sample = load_sample_submission(paths.sample_submission, sep=cfg["data"].get("csv_sep", ";"))
         id_col = [c for c in sample.columns if "id" in c.lower()][0]
-        scales = []
+        mt_scales, fl_scales = [], []
         for _, srow in sample.iterrows():
             rid = str(srow[id_col])
             stem = Path(rid).stem
@@ -92,20 +93,22 @@ def main() -> None:
                 continue
             m = match.iloc[0]
             if np.isfinite(m["mt_px"]) and m["mt_px"] > 1 and float(srow["mt_mm"]) > 0:
-                scales.append(float(srow["mt_mm"]) / float(m["mt_px"]))
+                mt_scales.append(float(srow["mt_mm"]) / float(m["mt_px"]))
             if np.isfinite(m["fl_px"]) and m["fl_px"] > 1 and float(srow["fl_mm"]) > 0:
-                scales.append(float(srow["fl_mm"]) / float(m["fl_px"]))
+                fl_scales.append(float(srow["fl_mm"]) / float(m["fl_px"]))
             print(
                 f"GT {rid}: pa={srow['pa_deg']} fl={srow['fl_mm']} mt={srow['mt_mm']} | "
                 f"pred_px pa={m['pa_deg']:.2f} fl={m['fl_px']:.1f} mt={m['mt_px']:.1f}"
             )
-        if scales:
-            scale = float(np.median(scales))
-            print(f"Calibrated mm_per_pixel={scale:.5f} from {len(scales)} constraints")
+        if mt_scales:
+            mt_scale = float(np.median(mt_scales))
+        if fl_scales:
+            fl_scale = float(np.median(fl_scales))
+        print(f"Calibrated mt_scale={mt_scale:.5f} fl_scale={fl_scale:.5f}")
 
     out = raw.copy()
-    out["fl_mm"] = out["fl_px"] * scale
-    out["mt_mm"] = out["mt_px"] * scale
+    out["fl_mm"] = out["fl_px"] * fl_scale
+    out["mt_mm"] = out["mt_px"] * mt_scale
     # Fill NaNs with physiological defaults
     out["pa_deg"] = out["pa_deg"].fillna(15.0)
     out["fl_mm"] = out["fl_mm"].fillna(70.0)
@@ -122,7 +125,7 @@ def main() -> None:
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
     out_df.to_csv(args.out, index=False)
-    print(f"Wrote {args.out} ({len(out_df)} rows) scale={scale:.5f}")
+    print(f"Wrote {args.out} ({len(out_df)} rows) mt_scale={mt_scale:.5f} fl_scale={fl_scale:.5f}")
     print(out_df.describe().to_string())
 
 
