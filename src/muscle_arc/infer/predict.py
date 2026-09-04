@@ -113,6 +113,7 @@ def run_folder_inference(
             fl_range=tuple(clip["fl_mm"]),
             mt_range=tuple(clip["mt_mm"]),
         )
-        ids.append(stem_key(path))
+        # Kaggle sample uses filenames with extension (e.g. IMG_00001.tif)
+        ids.append(path.name)
         params.append(est)
     return build_submission(ids, params)
