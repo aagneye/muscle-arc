@@ -12,9 +12,12 @@ IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp"}
 
 
 def list_images(folder: Path) -> list[Path]:
+    """Collect image files under ``folder`` (recursive; Kaggle uses nested dirs)."""
     if not folder.exists():
         return []
-    return sorted(p for p in folder.iterdir() if p.suffix.lower() in IMAGE_EXTS)
+    return sorted(
+        p for p in folder.rglob("*") if p.is_file() and p.suffix.lower() in IMAGE_EXTS
+    )
 
 
 def stem_key(path: Path) -> str:
