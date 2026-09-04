@@ -1,0 +1,45 @@
+seed: 42
+img_size: 512
+device: cuda
+
+data:
+  root: data/raw
+  apo_imgs: apo_imgs
+  apo_masks: apo_masks
+  fasc_imgs: fasc_imgs
+  fasc_masks: fasc_masks
+  test_images: test_images
+  sample_submission: sample_submission.csv
+  # sample_submission may use ';' as separator on Kaggle
+  csv_sep: ";"
+
+model:
+  # Separate heads for aponeurosis (MT) and fascicle (PA/FL)
+  architecture: Unet
+  encoder: tu-efficientnet_b4
+  encoder_weights: imagenet
+  in_channels: 3
+  classes: 1
+
+train:
+  batch_size: 8
+  epochs: 40
+  lr: 3.0e-4
+  weight_decay: 1.0e-4
+  num_workers: 4
+  val_fraction: 0.15
+  amp: true
+  checkpoint_dir: experiments/checkpoints
+
+infer:
+  tta_hflip: true
+  mask_percentile: 75
+  # Pixel spacing fallback when DICOM/metadata unavailable (mm/px).
+  # Override once calibrated on training labels or provided scale.
+  mm_per_pixel: 0.1
+  clip:
+    pa_deg: [5.0, 45.0]
+    fl_mm: [30.0, 200.0]
+    mt_mm: [5.0, 60.0]
+  temporal_smooth: true
+  temporal_window: 5
