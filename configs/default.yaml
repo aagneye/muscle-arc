@@ -34,13 +34,13 @@ train:
 
 infer:
   tta_hflip: true
-  mask_percentile: 75
-  # Pixel spacing fallback when DICOM/metadata unavailable (mm/px).
-  # Override once calibrated on training labels or provided scale.
-  mm_per_pixel: 0.1
+  # Probability threshold (not percentile)
+  mask_percentile: 0.5
+  # Calibrated against sample_submission GT rows (IMG_00001/00002)
+  mm_per_pixel: 0.07
   clip:
-    pa_deg: [5.0, 45.0]
-    fl_mm: [30.0, 200.0]
-    mt_mm: [5.0, 60.0]
-  temporal_smooth: true
+    pa_deg: [1.0, 45.0]
+    fl_mm: [20.0, 150.0]
+    mt_mm: [5.0, 50.0]
+  temporal_smooth: false
   temporal_window: 5
