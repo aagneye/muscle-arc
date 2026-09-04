@@ -28,6 +28,41 @@ def load_model(ckpt: Path, model_cfg: dict, device: torch.device) -> torch.nn.Mo
     return model
 
 
+def align_to_sample(pred: pd.DataFrame, sample: pd.DataFrame) -> pd.DataFrame | None:
+    """Reorder predictions to sample IDs when sample looks like a full template."""
+    id_col = [c for c in sample.columns if "id" in c.lower()][0]
+    sample_ids = sample[id_col].astype(str).tolist()
+    if len(sample_ids) < len(pred):
+        # Official zip ships a 2-row example only — ignore for ID list.
+        return None
+
+    by_name = pred.set_index("image_id")
+    by_stem = pred.assign(_stem=pred["image_id"].map(lambda x: Path(str(x)).stem)).set_index(
+        "_stem"
+    )
+    ordered = []
+    for raw_id in sample_ids:
+        key = Path(raw_id).stem
+        if raw_id in by_name.index:
+            row = by_name.loc[raw_id]
+        elif key in by_stem.index:
+            row = by_stem.loc[key]
+        else:
+            ordered.append(
+                {"image_id": raw_id, "pa_deg": 20.0, "fl_mm": 100.0, "mt_mm": 25.0}
+            )
+            continue
+        ordered.append(
+            {
+                "image_id": raw_id,
+                "pa_deg": float(row["pa_deg"]),
+                "fl_mm": float(row["fl_mm"]),
+                "mt_mm": float(row["mt_mm"]),
+            }
+        )
+    return pd.DataFrame(ordered)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=Path("configs/default.yaml"))
@@ -65,42 +100,19 @@ def main() -> None:
         mask_percentile=float(infer_cfg.get("mask_percentile", 75)),
     )
 
+    out_df = pred.sort_values("image_id").reset_index(drop=True)
     if paths.sample_submission.exists():
         sample = load_sample_submission(
             paths.sample_submission, sep=cfg["data"].get("csv_sep", ";")
         )
-        id_col = [c for c in sample.columns if "id" in c.lower()][0]
-        # Align to sample order / ids
-        pred = pred.set_index("image_id")
-        ordered = []
-        for raw_id in sample[id_col].astype(str):
-            key = Path(raw_id).stem
-            if key in pred.index:
-                row = pred.loc[key]
-            else:
-                # try full string
-                row = pred.loc[raw_id] if raw_id in pred.index else None
-            if row is None:
-                ordered.append(
-                    {
-                        "image_id": raw_id,
-                        "pa_deg": 20.0,
-                        "fl_mm": 100.0,
-                        "mt_mm": 25.0,
-                    }
-                )
-            else:
-                ordered.append(
-                    {
-                        "image_id": raw_id,
-                        "pa_deg": float(row["pa_deg"]),
-                        "fl_mm": float(row["fl_mm"]),
-                        "mt_mm": float(row["mt_mm"]),
-                    }
-                )
-        out_df = pd.DataFrame(ordered)
-    else:
-        out_df = pred
+        aligned = align_to_sample(pred, sample)
+        if aligned is not None:
+            out_df = aligned
+        else:
+            print(
+                f"sample_submission has {len(sample)} rows (< {len(pred)} preds); "
+                "using all test image filenames"
+            )
 
     if infer_cfg.get("temporal_smooth", True):
         out_df = temporal_smooth(out_df, window=int(infer_cfg.get("temporal_window", 5)))
@@ -108,6 +120,8 @@ def main() -> None:
     args.out.parent.mkdir(parents=True, exist_ok=True)
     out_df.to_csv(args.out, index=False)
     print(f"Wrote {args.out} ({len(out_df)} rows)")
+    print(out_df.head(3).to_string(index=False))
+    print(out_df[["pa_deg", "fl_mm", "mt_mm"]].describe().to_string())
 
 
 if __name__ == "__main__":
