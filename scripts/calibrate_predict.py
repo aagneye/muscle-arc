@@ -14,7 +14,12 @@ import yaml
 from muscle_arc.data.dataset import list_images, read_gray
 from muscle_arc.data.paths import DataPaths
 from muscle_arc.geometry.metrics import clip_params, estimate_architecture
-from muscle_arc.infer.predict import load_sample_submission, predict_mask, temporal_smooth
+from muscle_arc.infer.predict import (
+    load_sample_submission,
+    predict_mask,
+    predict_prob,
+    temporal_smooth,
+)
 from muscle_arc.models.segmentation import build_segmentation_model
 
 
@@ -55,17 +60,24 @@ def main() -> None:
     for p in test_paths:
         gray = read_gray(p)
         apo = predict_mask(apo_model, gray, img_size, device, True, thr)
-        fasc = predict_mask(fasc_model, gray, img_size, device, True, thr)
-        # Use scale=1 to recover px via estimate then divide — cleaner to call geometry directly
+        fasc_prob = predict_prob(fasc_model, gray, img_size, device, True)
+        fasc = (fasc_prob > thr).astype(np.uint8)
         from muscle_arc.geometry.metrics import (
             fascicle_length_px,
             muscle_thickness_px,
             pennation_angle_deg,
         )
 
-        pa = pennation_angle_deg(fasc, apo)
-        fl_px = fascicle_length_px(fasc, apo)
         mt_px = muscle_thickness_px(apo)
+        pa = pennation_angle_deg(fasc, apo, fasc_prob=fasc_prob, gray=gray)
+        fl_px = fascicle_length_px(
+            fasc,
+            apo,
+            fasc_prob=fasc_prob,
+            gray=gray,
+            pa_deg=pa if np.isfinite(pa) else None,
+            mt_px=mt_px if np.isfinite(mt_px) else None,
+        )
         rows.append(
             {
                 "image_id": p.name,
