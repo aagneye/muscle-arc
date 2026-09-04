@@ -42,10 +42,10 @@ def predict_mask(
 
 
 def load_sample_submission(path: Path, sep: str = ";") -> pd.DataFrame:
-    df = pd.read_csv(path, sep=sep)
+    df = pd.read_csv(path, sep=sep, encoding="utf-8-sig")
     # Fallback if separator was wrong
     if df.shape[1] == 1:
-        df = pd.read_csv(path)
+        df = pd.read_csv(path, encoding="utf-8-sig")
     return df
 
 
