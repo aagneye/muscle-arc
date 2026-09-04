@@ -35,7 +35,16 @@ def predict_mask(
     if tta_hflip:
         pred = 0.5 * (pred + np.fliplr(_infer(np.fliplr(resized).copy())))
 
-    thresh = np.percentile(pred, mask_percentile)
+    # Prefer fixed probability threshold; percentile forces ~constant mask area.
+    if mask_percentile and 0 < mask_percentile < 100:
+        # Backward-compat: values > 1 treated as percentile; else probability.
+        thresh = (
+            float(np.percentile(pred, mask_percentile))
+            if mask_percentile > 1
+            else float(mask_percentile)
+        )
+    else:
+        thresh = 0.5
     mask = (pred > thresh).astype(np.uint8)
     mask = cv2.medianBlur(mask, 5)
     return cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
