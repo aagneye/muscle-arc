@@ -14,7 +14,7 @@ python -u scripts/eval_osf_pipeline.py \
   --apo-ckpt "$APO" --fasc-ckpt "$FASC" \
   --apo-thr 0.35 --fasc-thr 0.10 \
   --out experiments/gate2_osf_umud.json \
-  2>&1 | tee logs/gate2_v12.log
+  2>&1 | tee logs/gate2_v12.log || true
 
 echo "=== Generate MT public-median probes ==="
 python scripts/probe_public_median.py --axis mt --values 16 22 28 \
