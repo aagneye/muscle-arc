@@ -145,6 +145,71 @@ def _tick_components(region: np.ndarray, axis: str) -> list[tuple[float, float, 
     return out
 
 
+def _autocorr_duty_pitch(
+    gray: np.ndarray,
+    axis: str,
+    reach: int,
+    *,
+    duty_hi: float = 0.08,
+) -> tuple[float | None, float]:
+    """Autocorr + sparse duty-cycle pitch on left/right (or top/bottom) strips.
+
+    True rulers are sparse combs (duty ~0.01–0.05); dense UI / colour bars
+    (duty ~0.13+) are rejected. Used for both cropped and console frames.
+    """
+    h, w = gray.shape[:2]
+    extent = w if axis == "y" else h
+    best_pitch, best_conf = None, 0.0
+    for lo, hi in ((0, reach), (extent - reach, extent)):
+        region = gray[:, lo:hi] if axis == "y" else gray[lo:hi, :]
+        if axis == "y":
+            profile = region.max(axis=1).astype(np.float64)
+        else:
+            profile = region.max(axis=0).astype(np.float64)
+        if profile.max() < 15:
+            continue
+        p = profile - profile.mean()
+        if float(np.std(p)) < 1e-6:
+            continue
+        corr = np.correlate(p, p, mode="full")
+        corr = corr[len(corr) // 2 :]
+        if len(corr) < 20:
+            continue
+        corr = corr / max(corr[0], 1e-8)
+        lo_p, hi_p = 8, min(120, len(corr) - 1)
+        thr = profile.mean() + 0.6 * profile.std()
+        duty = float((profile > thr).mean())
+        if duty < 0.005 or duty > duty_hi:
+            continue
+        peaks: list[tuple[float, int]] = []
+        for lag in range(lo_p, hi_p):
+            if corr[lag] < 0.25:
+                continue
+            if lag > lo_p and corr[lag] <= corr[lag - 1]:
+                continue
+            if lag + 1 < hi_p and corr[lag] < corr[lag + 1]:
+                continue
+            peaks.append((float(corr[lag]), lag))
+        if not peaks:
+            continue
+        peaks.sort(reverse=True)
+        strength, pitch = peaks[0]
+        harm = (
+            float(corr[min(int(round(2 * pitch)), len(corr) - 1)])
+            if pitch * 2 < len(corr)
+            else 0.0
+        )
+        conf = float(
+            strength
+            * (0.5 + 0.5 * harm)
+            * np.clip((0.05 - abs(duty - 0.02)) / 0.05, 0.3, 1.0)
+        )
+        if conf > best_conf:
+            best_conf = conf
+            best_pitch = float(pitch)
+    return best_pitch, best_conf
+
+
 def tick_pitch_px(
     gray: np.ndarray,
     axis: str = "y",
@@ -154,64 +219,30 @@ def tick_pitch_px(
 ) -> tuple[float | None, float]:
     """Return (pitch_px, confidence) for a side/top ruler.
 
-    When faint=True (cropped frames), use autocorrelation + duty-cycle prior:
-    true rulers are sparse combs (duty ~0.01–0.05), not dense UI stripes.
+    Prefer duty-cycle autocorrelation (rejects colour-bar latch). Console frames
+    also try a thin-strip duty pass before falling back to CC+comb.
     """
     h, w = gray.shape[:2]
     extent = w if axis == "y" else h
-    reach = max(20 if faint else 30, int(extent * (0.12 if faint else edge_frac)))
-    best_pitch, best_conf = None, 0.0
-
     if faint:
-        for lo, hi in ((0, reach), (extent - reach, extent)):
-            region = gray[:, lo:hi] if axis == "y" else gray[lo:hi, :]
-            if axis == "y":
-                profile = region.max(axis=1).astype(np.float64)
-            else:
-                profile = region.max(axis=0).astype(np.float64)
-            if profile.max() < 15:
-                continue
-            p = profile - profile.mean()
-            if float(np.std(p)) < 1e-6:
-                continue
-            corr = np.correlate(p, p, mode="full")
-            corr = corr[len(corr) // 2 :]
-            if len(corr) < 20:
-                continue
-            corr = corr / max(corr[0], 1e-8)
-            lo_p, hi_p = 8, min(120, len(corr) - 1)
-            thr = profile.mean() + 0.6 * profile.std()
-            duty = float((profile > thr).mean())
-            if duty < 0.005 or duty > 0.08:
-                continue
-            peaks: list[tuple[float, int]] = []
-            for lag in range(lo_p, hi_p):
-                if corr[lag] < 0.25:
-                    continue
-                if lag > lo_p and corr[lag] <= corr[lag - 1]:
-                    continue
-                if lag + 1 < hi_p and corr[lag] < corr[lag + 1]:
-                    continue
-                peaks.append((float(corr[lag]), lag))
-            if not peaks:
-                continue
-            peaks.sort(reverse=True)
-            strength, pitch = peaks[0]
-            harm = (
-                float(corr[min(int(round(2 * pitch)), len(corr) - 1)])
-                if pitch * 2 < len(corr)
-                else 0.0
-            )
-            conf = float(
-                strength
-                * (0.5 + 0.5 * harm)
-                * np.clip((0.05 - abs(duty - 0.02)) / 0.05, 0.3, 1.0)
-            )
-            if conf > best_conf:
-                best_conf = conf
-                best_pitch = float(pitch)
-        return best_pitch, best_conf
+        reach = max(20, int(extent * 0.12))
+        return _autocorr_duty_pitch(gray, axis, reach, duty_hi=0.08)
 
+    # Console: thin strip first (Siemens 800x1200 colour-bar trap).
+    thin = max(24, int(extent * 0.06))
+    pitch, conf = _autocorr_duty_pitch(gray, axis, thin, duty_hi=0.06)
+    if pitch is not None and conf >= 0.45:
+        return pitch, conf
+
+    reach = max(30, int(extent * edge_frac))
+    # Wider duty pass before CC fallback.
+    pitch2, conf2 = _autocorr_duty_pitch(gray, axis, reach, duty_hi=0.08)
+    if pitch2 is not None and conf2 > conf:
+        pitch, conf = pitch2, conf2
+    if pitch is not None and conf >= 0.55:
+        return pitch, conf
+
+    best_pitch, best_conf = pitch, conf
     for lo, hi in ((0, reach), (extent - reach, extent)):
         region = gray[:, lo:hi] if axis == "y" else gray[lo:hi, :]
         comps = _tick_components(region, axis)
@@ -227,13 +258,13 @@ def tick_pitch_px(
             lens = length[sel]
             if lens.mean() <= 0 or lens.std() / lens.mean() > 0.35:
                 continue
-            pitch, strength = _fit_comb(along[sel])
-            if pitch <= 2:
+            p_fit, strength = _fit_comb(along[sel])
+            if p_fit <= 2:
                 continue
-            conf = float(strength * np.clip(sel.sum() / 6.0, 0.0, 1.0))
-            if conf > best_conf:
-                best_conf = conf
-                best_pitch = pitch
+            c = float(strength * np.clip(sel.sum() / 6.0, 0.0, 1.0))
+            if c > best_conf:
+                best_conf = c
+                best_pitch = p_fit
     return best_pitch, best_conf
 
 
