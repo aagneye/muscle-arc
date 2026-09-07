@@ -205,6 +205,12 @@ def main() -> None:
         help="Estimate depth OCR/ticks live when table missing an image",
     )
     parser.add_argument(
+        "--scale-detector",
+        type=Path,
+        default=None,
+        help="Optional trained ScaleStripDetector ckpt; fills gaps when OCR/ticks miss",
+    )
+    parser.add_argument(
         "--osf-gt",
         type=Path,
         default=Path("experiments/osf_expert_gt.csv"),
@@ -253,6 +259,13 @@ def main() -> None:
     ocr_by_id = load_depth_scale_table(args.depth_scale_table)
     print(f"Depth-scale table keys: {len(ocr_by_id)}")
 
+    scale_det = None
+    if args.scale_detector is not None and args.scale_detector.exists():
+        from muscle_arc.models.scale_detector import load_scale_detector, predict_mm_per_pixel
+
+        scale_det = load_scale_detector(args.scale_detector, device)
+        print(f"Loaded scale detector {args.scale_detector}")
+
     test_paths = list_images(paths.test_images)
     groups = sequence_groups(test_paths)
     rows = []
@@ -276,6 +289,15 @@ def main() -> None:
                 live_scales[p.name] = float(est.mm_per_pixel)
                 live_scales[p.stem] = float(est.mm_per_pixel)
                 prov_mm = float(est.mm_per_pixel)
+        if prov_mm is None and scale_det is not None:
+            try:
+                mm_nn = float(predict_mm_per_pixel(scale_det, full, device))
+                if 0.025 <= mm_nn <= 0.12:
+                    live_scales[p.name] = mm_nn
+                    live_scales[p.stem] = mm_nn
+                    prov_mm = mm_nn
+            except Exception as exc:  # noqa: BLE001
+                print(f"scale_detector fail {p.name}: {exc}")
 
         apo_prob = predict_prob(
             apo_model,
