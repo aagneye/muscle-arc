@@ -75,3 +75,27 @@ class ScaleStripDetector(nn.Module):
 
 def huber_mm_loss(pred: torch.Tensor, target: torch.Tensor, delta: float = 0.01) -> torch.Tensor:
     return F.huber_loss(pred, target, delta=delta)
+
+
+def load_scale_detector(path: "Path | str", device: torch.device | None = None) -> ScaleStripDetector:
+    from pathlib import Path
+
+    device = device or torch.device("cpu")
+    model = ScaleStripDetector().to(device)
+    payload = torch.load(Path(path), map_location=device, weights_only=False)
+    state = payload["model"] if isinstance(payload, dict) and "model" in payload else payload
+    model.load_state_dict(state)
+    model.eval()
+    return model
+
+
+@torch.no_grad()
+def predict_mm_per_pixel(
+    model: ScaleStripDetector,
+    gray: "np.ndarray",
+    device: torch.device | None = None,
+) -> float:
+    """Single-image mm/px from a trained ScaleStripDetector."""
+    device = device or next(model.parameters()).device
+    x = torch.from_numpy(extract_border_strips(gray)).unsqueeze(0).to(device)
+    return float(model(x).item())
