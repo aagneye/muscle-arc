@@ -269,68 +269,86 @@ def tick_pitch_px(
 
 
 def estimate_depth_scale(img: np.ndarray) -> DepthScaleResult:
-    """Primary: OCR depth + sector height. Secondary: tick comb (console / cropped)."""
+    """Primary: OCR depth + sector height. Secondary: tick comb; fuse when both fire."""
     gray = _to_gray(img)
     sector = find_sector(gray)
     kind, _chrome = classify_kind(gray, sector)
     depth, text = read_depth_cm(gray, sector)
 
+    mm_ocr: float | None = None
     if sector is not None and depth is not None and depth > 0:
         _x, _y, _w, sh = sector
         px_per_cm = float(sh) / float(depth)
-        mm = 10.0 / px_per_cm
-        conf = 0.95 if kind == "console" else 0.90
-        if not is_placeholder_dpi_scale(mm) and _MM_LO <= mm <= _MM_HI:
-            return DepthScaleResult(
-                mm_per_pixel=mm,
-                px_per_cm=px_per_cm,
-                depth_cm=depth,
-                sector=sector,
-                source="ocr+sector",
-                confidence=conf,
-                text=text.strip(),
-            )
+        mm_ocr = 10.0 / px_per_cm
+        if is_placeholder_dpi_scale(mm_ocr) or not (_MM_LO <= mm_ocr <= _MM_HI):
+            mm_ocr = None
 
     faint = kind == "cropped"
-    # Cropped frames: try vertical then horizontal faint combs (border ticks)
     axes = ("y", "x") if faint else ("y",)
-    best_result: DepthScaleResult | None = None
+    best_tick: DepthScaleResult | None = None
     for axis in axes:
         pitch, conf = tick_pitch_px(gray, axis=axis, faint=faint)
-        min_conf = 0.40 if faint else 0.60
+        min_conf = 0.40 if faint else 0.50
         if pitch is None or conf < min_conf:
             continue
         cands: list[tuple[float, float, float, str]] = []
         tick_order = (10.0, 5.0) if faint else (5.0, 10.0)
+        # When OCR mm is known, pick tick unit that best matches OCR (Thwaits fusion).
         for tick_mm in tick_order:
             mm = tick_mm / pitch
-            if _MM_LO <= mm <= _MM_HI:
+            if not (_MM_LO <= mm <= _MM_HI):
+                continue
+            if mm_ocr is not None:
+                score = abs(mm - mm_ocr) / max(mm_ocr, 1e-6)
+            else:
                 score = abs(mm - _MM_PRIOR) / max(conf, 1e-3)
-                cands.append((score, mm, tick_mm, f"ticks_{tick_mm:g}mm"))
+            cands.append((score, mm, tick_mm, f"ticks_{tick_mm:g}mm"))
         mm25 = 2.5 / pitch
         if (not faint) and conf >= 0.85 and 0.04 <= mm25 <= 0.09:
-            score = abs(mm25 - _MM_PRIOR) / max(conf, 1e-3) + 0.02
+            if mm_ocr is not None:
+                score = abs(mm25 - mm_ocr) / max(mm_ocr, 1e-6) + 0.02
+            else:
+                score = abs(mm25 - _MM_PRIOR) / max(conf, 1e-3) + 0.02
             cands.append((score, mm25, 2.5, "ticks_2.5mm"))
         if not cands:
             continue
         cands.sort(key=lambda t: t[0])
-        _score, mm, _tick_mm, src = cands[0]
+        score, mm, _tick_mm, src = cands[0]
+        fused = mm_ocr is not None and score <= 0.15
         out_conf = float(conf) * (0.85 if faint else 1.0)
+        if fused:
+            out_conf = min(0.98, max(out_conf, 0.90))
+            src = f"ocr+{src}"
         if out_conf < 0.40:
             continue
         cand = DepthScaleResult(
             mm_per_pixel=float(mm),
             px_per_cm=10.0 / float(mm),
-            depth_cm=None,
+            depth_cm=depth if fused or mm_ocr is not None else None,
             sector=sector,
             source=src + ("_faint" if faint else "") + (f"_{axis}" if faint and axis != "y" else ""),
             confidence=out_conf,
             text=text.strip(),
         )
-        if best_result is None or cand.confidence > best_result.confidence:
-            best_result = cand
-    if best_result is not None:
-        return best_result
+        if best_tick is None or cand.confidence > best_tick.confidence:
+            best_tick = cand
+
+    # Prefer fused ticks; else OCR+sector; else best ticks; else none.
+    if best_tick is not None and best_tick.source.startswith("ocr+"):
+        return best_tick
+    if mm_ocr is not None and sector is not None:
+        conf = 0.95 if kind == "console" else 0.90
+        return DepthScaleResult(
+            mm_per_pixel=float(mm_ocr),
+            px_per_cm=10.0 / float(mm_ocr),
+            depth_cm=depth,
+            sector=sector,
+            source="ocr+sector",
+            confidence=conf,
+            text=text.strip(),
+        )
+    if best_tick is not None:
+        return best_tick
 
     return DepthScaleResult(
         mm_per_pixel=None,
