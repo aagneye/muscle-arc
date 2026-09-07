@@ -74,6 +74,17 @@ def read_depth_cm(gray: np.ndarray, sector: tuple[int, int, int, int] | None) ->
             cands.append(val / 10.0)
     if not cands:
         return None, text
+    # Prefer depths that land mm/px in the ultrasound band when sector height is known.
+    if sector is not None and sector[3] > 0:
+        sh = float(sector[3])
+        scored: list[tuple[float, float]] = []
+        for d in cands:
+            mm = 10.0 * d / sh
+            if _MM_LO <= mm <= _MM_HI:
+                scored.append((abs(mm - _MM_PRIOR), d))
+        if scored:
+            scored.sort(key=lambda t: t[0])
+            return scored[0][1], text
     return max(cands), text
 
 
