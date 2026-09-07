@@ -65,17 +65,22 @@ python -u scripts/eval_gate3_dist.py \
 
 python -u scripts/eval_umud_local.py --pred "submissions/submission_${TAG}.csv" || true
 
-python3 - <<'PY'
-import json
-from pathlib import Path
-g1 = {}
-p = Path("experiments/gate1_geometry.json")
-if p.exists():
-    g1 = json.loads(p.read_text())
-# Gate3 writes print-only; check FL median roughly from cand
+python3 - <<PY
 import pandas as pd
-cand = pd.read_csv(f"submissions/submission_{Path('logs').exists() and '' or ''}{''}".replace("submissions/submission_", ""))
+from pathlib import Path
+tag = "${TAG}"
+cand = Path(f"submissions/submission_{tag}.csv")
+ref = Path("submissions/submission_v8.csv")
+d = pd.read_csv(cand)
+print(tag, "n", len(d), "FL_med", round(float(d.fl_mm.median()),1),
+      "FL_std", round(float(d.fl_mm.std()),1),
+      "clip140", int((d.fl_mm>=139.9).sum()),
+      "MT_med", round(float(d.mt_mm.median()),1))
+if ref.exists():
+    r = pd.read_csv(ref)
+    print("v8", "FL_med", round(float(r.fl_mm.median()),1), "FL_std", round(float(r.fl_mm.std()),1))
+print("REVIEW Gate3 log; submit only if no std collapse / clip storm")
 PY
 
-echo "=== DONE ${TAG} — review Gate3 then submit manually if OK ==="
+echo "=== DONE ${TAG} ==="
 ls -la "submissions/submission_${TAG}.csv" experiments/checkpoints_scale/scale_detector.pt experiments/depth_scale_table.csv
