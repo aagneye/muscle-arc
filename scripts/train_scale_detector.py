@@ -25,15 +25,19 @@ from torch.utils.data import DataLoader, Dataset
 from muscle_arc.models.scale_detector import (
     MM_HI,
     MM_LO,
+    ScaleNativeCropDetector,
     ScaleStripDetector,
     extract_border_strips,
+    extract_native_crop,
     huber_mm_loss,
+    log_mm_loss,
 )
 
 
 class ScaleLabelDataset(Dataset):
-    def __init__(self, df: pd.DataFrame) -> None:
+    def __init__(self, df: pd.DataFrame, kind: str = "strip") -> None:
         self.df = df.reset_index(drop=True)
+        self.kind = kind
 
     def __len__(self) -> int:
         return len(self.df)
@@ -43,8 +47,16 @@ class ScaleLabelDataset(Dataset):
         gray = cv2.imread(str(r["path"]), cv2.IMREAD_GRAYSCALE)
         if gray is None:
             raise FileNotFoundError(r["path"])
-        x = extract_border_strips(gray)
-        y = float(r["mm_per_pixel"])
+        if self.kind == "native":
+            # Scale-augmentation: random resample then crop at native size
+            scale = float(np.random.uniform(0.85, 1.15))
+            nh, nw = max(32, int(gray.shape[0] * scale)), max(32, int(gray.shape[1] * scale))
+            gray2 = cv2.resize(gray, (nw, nh), interpolation=cv2.INTER_AREA)
+            y = float(r["mm_per_pixel"]) / scale  # mm per (new) pixel
+            x = extract_native_crop(gray2)
+        else:
+            x = extract_border_strips(gray)
+            y = float(r["mm_per_pixel"])
         y = float(np.clip(y, MM_LO, MM_HI))
         return torch.from_numpy(x), torch.tensor(y, dtype=torch.float32)
 
@@ -59,6 +71,13 @@ def main() -> None:
     parser.add_argument("--val-frac", type=float, default=0.15)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--min-conf", type=float, default=0.55)
+    parser.add_argument(
+        "--kind",
+        type=str,
+        default="strip",
+        choices=["strip", "native"],
+        help="strip=legacy border CNN; native=pitch-preserving crop CNN",
+    )
     args = parser.parse_args()
 
     random.seed(args.seed)
@@ -81,17 +100,20 @@ def main() -> None:
     val_df = df.iloc[list(val_idx)]
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = ScaleStripDetector().to(device)
+    if args.kind == "native":
+        model = ScaleNativeCropDetector().to(device)
+    else:
+        model = ScaleStripDetector().to(device)
     opt = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=1e-4)
 
     train_loader = DataLoader(
-        ScaleLabelDataset(train_df),
+        ScaleLabelDataset(train_df, kind=args.kind),
         batch_size=args.batch_size,
         shuffle=True,
         num_workers=0,
     )
     val_loader = DataLoader(
-        ScaleLabelDataset(val_df),
+        ScaleLabelDataset(val_df, kind=args.kind),
         batch_size=args.batch_size,
         shuffle=False,
         num_workers=0,
@@ -107,8 +129,12 @@ def main() -> None:
         n_tr = 0
         for x, y in train_loader:
             x, y = x.to(device), y.to(device)
-            pred = model(x)
-            loss = huber_mm_loss(pred, y)
+            if args.kind == "native":
+                pred, _depth = model(x)
+                loss = log_mm_loss(pred, y)
+            else:
+                pred = model(x)
+                loss = huber_mm_loss(pred, y)
             opt.zero_grad(set_to_none=True)
             loss.backward()
             opt.step()
@@ -120,7 +146,10 @@ def main() -> None:
         with torch.no_grad():
             for x, y in val_loader:
                 x, y = x.to(device), y.to(device)
-                pred = model(x)
+                if args.kind == "native":
+                    pred, _ = model(x)
+                else:
+                    pred = model(x)
                 errs.extend((pred - y).abs().cpu().tolist())
         mae = float(np.mean(errs)) if errs else 1e9
         row = {"epoch": epoch, "train_loss": tr_loss / max(n_tr, 1), "val_mae": mae}
@@ -131,6 +160,7 @@ def main() -> None:
             torch.save(
                 {
                     "model": model.state_dict(),
+                    "kind": args.kind,
                     "val_mae": mae,
                     "mm_lo": MM_LO,
                     "mm_hi": MM_HI,
