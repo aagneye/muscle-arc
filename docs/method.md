@@ -34,6 +34,42 @@ Assume image coordinates with +y downward. Calibrate `mm_per_pixel` from known s
 
 Clip to physiological ranges (see `configs/default.yaml`).
 
+## Scale calibration
+
+Absolute FL/MT require mm-per-pixel. TIFF audit (`scripts/audit_tiff_scales.py`) found
+**0/309 usable scales on `test_images_v2`** — every candidate tag was classic 72 DPI
+placeholder (`mm/px ≈ 0.353`). Decision: **Phase A′** (no metadata-first path on this set).
+
+Pipeline:
+
+1. Audit TIFF/ImageJ tags; reject placeholder 72 DPI at write time.
+2. Prefer usable metadata when present (`muscle_arc.geometry.scale.assign_scales`).
+3. Else richer clustering (aspect + height + brightness) fit from the 2 labeled
+   `sample_submission` rows.
+4. **Phase A′**: train Huber/HistGBDT residual models on UMUD OSF expert architecture
+   benchmarks (`Scale_pixel_per_cm` + median R1–R7 PA/FL/MT) via
+   `scripts/train_residual_scale.py` → `experiments/residual_models/`. Applied in
+   `calibrate_predict.py` for non-metadata rows (`--residual-prefer blend|mm|scale`).
+5. Small residual gain correction on sample GT (clamped).
+
+### External public data (challenge-allowed)
+
+- OSF node `xbawc` — Expert Analysed Benchmark Image Datasets
+  (`scripts/download_osf_benchmarks.py`)
+- Architecture set v0.1.0: 35 images, four devices, expert MT/FL/PA + known
+  `Scale_pixel_per_cm` → `experiments/osf_expert_gt.csv`
+- Local MAE gate: `scripts/eval_umud_local.py` (sample GT + optional `--external-gt`)
+
+Domain-shift risk: OSF muscles/devices may not match the Kaggle test mix; LOO/CV MAE on
+OSF is a necessary but not sufficient gate before submit.
+
+**v9 lesson (2026-09-05):** applying OSF direct-mm blend to all 309 test rows
+over-compressed FL/MT (std collapsed) and scored **1.062** vs v8 **0.999**.
+Local sample MAE (n=2) improved while LB worsened — do not trust Gate-B alone.
+Residual defaults to `--residual-prefer off`; use only experimentally on
+`primary`/`cluster_prefix` rows. Keep v8 as rollback. Next: Phase B ensemble/TTA
+while refining A′ (scale-only soft prior, not direct mm replace).
+
 ## Training
 
 - Separate datasets for apo vs fasc (different image counts)
