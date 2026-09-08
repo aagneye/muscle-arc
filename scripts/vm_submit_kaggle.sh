@@ -1,55 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 cd /home/azureuser/muscle-arc
+# shellcheck disable=SC1091
 source .venv/bin/activate
-
-FILE=submissions/submission.csv
+FILE="${1:-submissions/submission_v3.csv}"
+MSG="${2:-v3 dual-scale FL/MT calibration + fasc mask fix}"
 COMP=umud-challenge-muscle-architecture-in-ultrasound-data
-MSG="unet-b4 seg+geometry baseline v1 (309 images)"
-
-if [ ! -f "$FILE" ]; then
-  echo "Missing $FILE"
-  exit 1
-fi
-wc -l "$FILE"
-head -3 "$FILE"
-
 TOKEN="$(tr -d '\n' < ~/.kaggle/access_token)"
 export KAGGLE_API_TOKEN="$TOKEN"
-
-# Ensure kaggle.json is valid for CLI (username + token as key)
+cp "$FILE" submissions/submission.csv
+wc -l submissions/submission.csv
 python <<'PY'
 import json
 from pathlib import Path
 home = Path.home() / ".kaggle"
 token = (home / "access_token").read_text().strip()
-cfg_path = home / "kaggle.json"
-username = "aagneye"
-if cfg_path.exists():
-    try:
-        data = json.loads(cfg_path.read_text())
-        username = data.get("username") or username
-    except Exception:
-        pass
-cfg_path.write_text(json.dumps({"username": username, "key": token}))
-cfg_path.chmod(0o600)
-print("auth ready for", username)
+(home / "kaggle.json").write_text(json.dumps({"username": "aagneye", "key": token}))
+(home / "kaggle.json").chmod(0o600)
 PY
-
-echo "Submitting via kaggle CLI..."
-if kaggle competitions submit -c "$COMP" -f "$FILE" -m "$MSG"; then
-  echo "CLI submit OK"
-else
-  echo "CLI failed; trying HTTP upload..."
-  # Fallback: competition submit API
-  curl -sS -X POST \
-    -H "Authorization: Bearer ${TOKEN}" \
-    -F "file=@${FILE}" \
-    -F "submissionDescription=${MSG}" \
-    "https://www.kaggle.com/api/v1/competitions/submissions/submit/${COMP}" \
-    | tee /tmp/kaggle_submit_resp.json
-  echo
-fi
-
-echo "--- recent submissions ---"
-kaggle competitions submissions -c "$COMP" 2>&1 | head -15 || true
+kaggle competitions submit -c "$COMP" -f submissions/submission.csv -m "$MSG"
+sleep 20
+TOKEN="$(tr -d '\n' < ~/.kaggle/access_token)"
+curl -sS -H "Authorization: Bearer ${TOKEN}" \
+  "https://api.kaggle.com/v1/competitions/submissions/list/${COMP}?pageSize=3" \
+  | python -c "import sys,json; d=json.load(sys.stdin); 
+[print(x.get('date'), x.get('publicScore'), x.get('status'), x.get('description','')[:60]) for x in d[:3]]"
