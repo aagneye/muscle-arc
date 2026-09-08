@@ -295,11 +295,21 @@ def _fit_apo_lines(
     mm_per_pixel: float | None = None,
 ) -> tuple[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]] | None:
     """Return ((p_s, d_s), (p_d, d_d)) for superficial and deep apo lines."""
+    try:
+        from muscle_arc.geometry.surfaces import extract_apo_surfaces, line_from_surface
+
+        surfaces = extract_apo_surfaces(apo_mask, fasc_mask=fasc_mask, degree=2)
+        if surfaces is not None:
+            line_s = line_from_surface(surfaces, "super")
+            line_d = line_from_surface(surfaces, "deep")
+            if line_s is not None and line_d is not None:
+                return line_s, line_d
+    except Exception:  # noqa: BLE001
+        pass
     bands = _apo_bands(apo_mask, fasc_mask=fasc_mask, mm_per_pixel=mm_per_pixel)
     if bands is None:
         return None
     super_m, deep_m = bands
-    # Inner edges facing the muscle belly
     line_s = _fit_line_deg1_edge(super_m, edge="inner_bottom")
     line_d = _fit_line_deg1_edge(deep_m, edge="inner_top")
     if line_s is None:
@@ -492,45 +502,13 @@ def _hough_fasc_components(
 def _radon_orientation(
     gray: np.ndarray, apo_mask: np.ndarray | None
 ) -> tuple[np.ndarray, np.ndarray, float] | None:
-    """Local Radon-like orientation via rotating projection energy in apo ROI."""
-    if gray is None or gray.ndim != 2:
-        return None
-    h, w = gray.shape
-    bands = _apo_bands(apo_mask) if apo_mask is not None else None
-    y0, y1 = int(0.2 * h), int(0.8 * h)
-    if bands is not None:
-        ys_s = np.where(bands[0] > 0)[0]
-        ys_d = np.where(bands[1] > 0)[0]
-        if len(ys_s) and len(ys_d):
-            y0 = int(np.percentile(ys_s, 60))
-            y1 = int(np.percentile(ys_d, 40))
-            if y1 <= y0 + 10:
-                y0, y1 = int(0.2 * h), int(0.8 * h)
-    roi = gray[y0:y1, int(0.1 * w) : int(0.9 * w)].astype(np.float32)
-    if roi.size < 100:
-        return None
-    # Enhance linear texture
-    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    enh = clahe.apply(np.clip(roi, 0, 255).astype(np.uint8)).astype(np.float32)
-    best_ang = None
-    best_score = -1.0
-    # Search angles 5..40 deg from horizontal (image coords, +y down)
-    for ang in np.linspace(5.0, 40.0, 36):
-        M = cv2.getRotationMatrix2D((enh.shape[1] / 2, enh.shape[0] / 2), float(ang), 1.0)
-        rot = cv2.warpAffine(enh, M, (enh.shape[1], enh.shape[0]), flags=cv2.INTER_LINEAR)
-        # Projection variance along rows — fascicles near-horizontal after rotate
-        proj = rot.mean(axis=1)
-        score = float(np.var(proj))
-        if score > best_score:
-            best_score = score
-            best_ang = float(ang)
-    if best_ang is None:
-        return None
-    rad = np.radians(best_ang)
-    direction = np.array([np.cos(rad), np.sin(rad)], dtype=np.float64)
-    point = np.array([0.5 * w, 0.5 * (y0 + y1)], dtype=np.float64)
-    STATS.radon_fallback += 1
-    return point, direction, float(0.4 * w)
+    """±angle Radon-like orientation (both pennation signs)."""
+    from muscle_arc.geometry.orientation import radon_orientation_field
+
+    out = radon_orientation_field(gray, apo_mask)
+    if out is not None:
+        STATS.radon_fallback += 1
+    return out
 
 
 def _fascicle_lines(
@@ -659,13 +637,17 @@ def pennation_angle_deg(
     return float("nan")
 
 
+# Thwaits / SMA blend weight — fixed, never LOO-tuned on OSF
+FL_BLEND_TRIG = 0.5
+
+
 def _edge_fit_fl_px(
     fasc_mask: np.ndarray,
     apo_mask: np.ndarray,
     pa_deg: float | None = None,
     mt_px: float | None = None,
 ) -> float | None:
-    """DL_Track-style FL: fit fascicle edges inside the inter-aponeurosis band."""
+    """Per-contour fascicle line fits inside the belly (true DL_Track-style)."""
     bands = _apo_bands(apo_mask, fasc_mask=fasc_mask)
     if bands is None:
         return None
@@ -682,47 +664,54 @@ def _edge_fit_fl_px(
     band = fasc_mask.copy()
     band[:y0, :] = 0
     band[y1:, :] = 0
-    if int(band.sum()) < 40:
+    if int(band.sum()) < 20:
         return None
-    # Contour edge points → fitLine
-    ys, xs = np.where(band > 0)
-    if len(xs) < 30:
-        return None
-    # Sample edge via morphological gradient
-    edge = cv2.morphologyEx(band, cv2.MORPH_GRADIENT, np.ones((3, 3), np.uint8))
-    ey, ex = np.where(edge > 0)
-    if len(ex) < 20:
-        ey, ex = ys, xs
-    pts = np.column_stack([ex.astype(np.float32), ey.astype(np.float32)])
-    vx, vy, x0, y0p = cv2.fitLine(pts, cv2.DIST_L2, 0, 0.01, 0.01).ravel()
-    direction = _normalize(np.array([float(vx), float(vy)], dtype=np.float64))
-    if direction is None:
-        return None
-    point = np.array([float(x0), float(y0p)], dtype=np.float64)
     apo_lines = _fit_apo_lines(apo_mask, fasc_mask=fasc_mask)
     if apo_lines is None:
         return None
     (ps, ds), (pd, dd) = apo_lines
-    p1 = _line_line_intersection(point, direction, ps, ds)
-    p2 = _line_line_intersection(point, direction, pd, dd)
-    if p1 is None or p2 is None:
-        return None
-    fl = float(np.linalg.norm(p1 - p2))
+    n_lbl, lbl, stats, _ = cv2.connectedComponentsWithStats(
+        (band > 0).astype(np.uint8), connectivity=8
+    )
+    lengths: list[float] = []
+    weights: list[float] = []
     diag = float(np.hypot(h, w))
-    if not (8.0 < fl < 1.5 * diag):
+    for lab in range(1, n_lbl):
+        area = int(stats[lab, cv2.CC_STAT_AREA])
+        if area < 25:
+            continue
+        ys, xs = np.where(lbl == lab)
+        if len(xs) < 15:
+            continue
+        pts = np.column_stack([xs.astype(np.float32), ys.astype(np.float32)])
+        vx, vy, x0, y0p = cv2.fitLine(pts, cv2.DIST_L2, 0, 0.01, 0.01).ravel()
+        direction = _normalize(np.array([float(vx), float(vy)], dtype=np.float64))
+        if direction is None:
+            continue
+        point = np.array([float(x0), float(y0p)], dtype=np.float64)
+        p1 = _line_line_intersection(point, direction, ps, ds)
+        p2 = _line_line_intersection(point, direction, pd, dd)
+        if p1 is None or p2 is None:
+            continue
+        fl = float(np.linalg.norm(p1 - p2))
+        if not (8.0 < fl < 1.5 * diag):
+            continue
+        if (
+            pa_deg is not None
+            and np.isfinite(pa_deg)
+            and mt_px is not None
+            and np.isfinite(mt_px)
+            and 5.0 <= abs(pa_deg) <= 45.0
+            and mt_px > 5.0
+        ):
+            trig = float(mt_px / max(np.sin(np.radians(abs(pa_deg))), 1e-3))
+            if trig > 1 and (fl > 2.5 * trig or fl < 0.35 * trig):
+                continue
+        lengths.append(fl)
+        weights.append(float(area))
+    if not lengths:
         return None
-    if (
-        pa_deg is not None
-        and np.isfinite(pa_deg)
-        and mt_px is not None
-        and np.isfinite(mt_px)
-        and 5.0 <= abs(pa_deg) <= 45.0
-        and mt_px > 5.0
-    ):
-        trig = float(mt_px / max(np.sin(np.radians(abs(pa_deg))), 1e-3))
-        if trig > 1 and (fl > 2.5 * trig or fl < 0.35 * trig):
-            return None
-    return fl
+    return float(_weighted_median(lengths, weights))
 
 
 def fascicle_length_px(
@@ -734,18 +723,9 @@ def fascicle_length_px(
     mt_px: float | None = None,
     mm_per_pixel: float | None = None,
 ) -> float:
+    """FL in pixels: 0.5 * contour_route + 0.5 * trig (Thwaits; no MT-window clamp)."""
     h, w = fasc_mask.shape
     diag = float(np.hypot(h, w))
-    # Equivalent to PA roughly in 10.5–30 deg for a given MT
-    fl_lo = fl_hi = None
-    if mt_px is not None and np.isfinite(mt_px) and mt_px > 5.0:
-        fl_lo = 2.0 * float(mt_px)
-        fl_hi = 5.5 * float(mt_px)
-
-    def _in_clamp(fl: float) -> bool:
-        if fl_lo is None or fl_hi is None:
-            return True
-        return fl_lo <= fl <= fl_hi
 
     inter: float | None = None
     edge_fl: float | None = None
@@ -776,8 +756,6 @@ def fascicle_length_px(
                     continue
                 if mt_px is not None and np.isfinite(mt_px) and fl < 0.7 * mt_px:
                     continue
-                if not _in_clamp(fl):
-                    continue
                 if (
                     pa_deg is not None
                     and np.isfinite(pa_deg)
@@ -785,21 +763,23 @@ def fascicle_length_px(
                     and np.isfinite(mt_px)
                     and 10.0 <= abs(pa_deg) <= 35.0
                 ):
-                    trig = float(mt_px / max(np.sin(np.radians(abs(pa_deg))), 1e-3))
-                    if trig > 1 and (fl > 2.5 * trig or fl < 0.35 * trig):
+                    trig_chk = float(mt_px / max(np.sin(np.radians(abs(pa_deg))), 1e-3))
+                    if trig_chk > 1 and (fl > 2.5 * trig_chk or fl < 0.35 * trig_chk):
                         continue
                 lengths.append(fl)
                 weights.append(length)
             if lengths:
                 inter = float(_weighted_median(lengths, weights))
-                if not _in_clamp(inter):
-                    inter = None
 
         edge_fl = _edge_fit_fl_px(fasc_mask, apo_mask, pa_deg=pa_deg, mt_px=mt_px)
-        if edge_fl is not None and not _in_clamp(float(edge_fl)):
-            edge_fl = None
 
-    # Trig only when PA is numerically stable (avoid 1/sin(5°) explosions)
+    # Contour route = median of intersection + per-contour edge fits
+    contour: float | None = None
+    cvals = [v for v in (inter, edge_fl) if v is not None and np.isfinite(v)]
+    if cvals:
+        contour = float(np.median(cvals))
+        STATS.fl_intersection += 1
+
     trig: float | None = None
     if (
         pa_deg is not None
@@ -810,36 +790,17 @@ def fascicle_length_px(
         and mt_px > 5.0
     ):
         trig = float(mt_px / max(np.sin(np.radians(abs(pa_deg))), 1e-3))
-        if not _in_clamp(trig):
+        if not (8.0 < trig < 1.5 * diag):
             trig = None
 
-    vals: list[float] = []
-    if inter is not None and np.isfinite(inter):
-        vals.append(inter)
-        STATS.fl_intersection += 1
-    if edge_fl is not None and np.isfinite(edge_fl):
-        vals.append(float(edge_fl))
-        STATS.fl_intersection += 1
-    if trig is not None:
-        vals.append(trig)
+    if contour is not None and trig is not None:
         STATS.fl_trig += 1
-    if vals:
-        # Median resists one exploded estimator dragging the mean
-        return float(np.median(vals))
-
-    # Last resort: clamp a raw intersection/edge if only out-of-range candidates existed
-    if mt_px is not None and np.isfinite(mt_px) and mt_px > 5.0 and fl_lo is not None and fl_hi is not None:
-        if inter is not None and np.isfinite(inter):
-            STATS.fl_intersection += 1
-            return float(np.clip(inter, fl_lo, fl_hi))
-        if (
-            pa_deg is not None
-            and np.isfinite(pa_deg)
-            and 10.0 <= abs(pa_deg) <= 35.0
-        ):
-            t = float(mt_px / max(np.sin(np.radians(abs(pa_deg))), 1e-3))
-            STATS.fl_trig += 1
-            return float(np.clip(t, fl_lo, fl_hi))
+        return float(FL_BLEND_TRIG * trig + (1.0 - FL_BLEND_TRIG) * contour)
+    if contour is not None:
+        return float(contour)
+    if trig is not None:
+        STATS.fl_trig += 1
+        return float(trig)
 
     STATS.fl_nan += 1
     return float("nan")
