@@ -256,7 +256,9 @@ def main() -> None:
 
     do_sector = args.sector_crop == "true"
     do_live_depth = args.live_depth_scale == "true"
-    ocr_by_id = load_depth_scale_table(args.depth_scale_table)
+    ocr_by_id, ocr_conf = load_depth_scale_table(
+        args.depth_scale_table, return_confidence=True
+    )
     print(f"Depth-scale table keys: {len(ocr_by_id)}")
 
     scale_det = None
@@ -270,6 +272,7 @@ def main() -> None:
     groups = sequence_groups(test_paths)
     rows = []
     live_scales: dict[str, float] = {}
+    live_conf: dict[str, float] = {}
     for p in test_paths:
         full = read_gray(p)
         crop_info = sector_crop(full) if do_sector else None
@@ -288,6 +291,8 @@ def main() -> None:
             if est.mm_per_pixel is not None and est.confidence >= 0.4:
                 live_scales[p.name] = float(est.mm_per_pixel)
                 live_scales[p.stem] = float(est.mm_per_pixel)
+                live_conf[p.name] = float(est.confidence)
+                live_conf[p.stem] = float(est.confidence)
                 prov_mm = float(est.mm_per_pixel)
         if prov_mm is None and scale_det is not None:
             try:
@@ -295,6 +300,8 @@ def main() -> None:
                 if 0.025 <= mm_nn <= 0.12:
                     live_scales[p.name] = mm_nn
                     live_scales[p.stem] = mm_nn
+                    live_conf[p.name] = 0.50  # CNN gap-fill: below group vote threshold
+                    live_conf[p.stem] = 0.50
                     prov_mm = mm_nn
             except Exception as exc:  # noqa: BLE001
                 print(f"scale_detector fail {p.name}: {exc}")
@@ -397,11 +404,16 @@ def main() -> None:
         )
     raw = pd.DataFrame(rows)
 
-    # Merge live OCR into table scales and share within sequence groups
+    # Merge live OCR into table scales and share within sequence groups.
+    # High-conf frames vote; low-conf / missing inherit the group median.
     ocr_merged = dict(ocr_by_id)
     ocr_merged.update(live_scales)
+    conf_merged = dict(ocr_conf)
+    conf_merged.update(live_conf)
     image_ids = [p.name for p in test_paths]
-    ocr_merged = share_scales_in_groups(image_ids, ocr_merged, groups)
+    ocr_merged = share_scales_in_groups(
+        image_ids, ocr_merged, groups, confidences=conf_merged, min_conf=0.55
+    )
     print(
         f"OCR/tick scales after live+group: {len(ocr_merged)} keys "
         f"(live={len(live_scales)}, crop_applied={int(raw['crop_applied'].sum())})"
@@ -489,37 +501,9 @@ def main() -> None:
     else:
         print("Residual models skipped (off or missing)")
 
-    # Residual affine correction on FL/MT using sample GT if ≥1 rows.
-    # Skip when OCR/tick coverage is high — n=2 sample gains fight per-image scales.
+    # Sample-GT gain correction DELETED (n=2 public-fit; v9/v14c lesson).
     n_ocr = int(info.get("n_ocr", 0))
-    skip_sample_gain = n_ocr >= max(20, int(0.25 * len(out)))
-    if paths.sample_submission.exists() and sample_scales and not skip_sample_gain:
-        sample = load_sample_submission(paths.sample_submission, sep=cfg["data"].get("csv_sep", ";"))
-        id_col = [c for c in sample.columns if "id" in c.lower()][0]
-        fl_pred, fl_gt, mt_pred, mt_gt = [], [], [], []
-        for _, srow in sample.iterrows():
-            rid = str(srow[id_col])
-            match = out[out["image_id"] == rid]
-            if match.empty:
-                match = out[out["image_id"].map(lambda x: Path(x).stem) == Path(rid).stem]
-            if match.empty:
-                continue
-            fl_pred.append(float(match.iloc[0]["fl_mm"]))
-            fl_gt.append(float(srow["fl_mm"]))
-            mt_pred.append(float(match.iloc[0]["mt_mm"]))
-            mt_gt.append(float(srow["mt_mm"]))
-        if len(fl_pred) >= 1:
-            # Simple gain correction: gt ≈ gain * pred
-            fl_gain = float(np.median(np.array(fl_gt) / np.maximum(np.array(fl_pred), 1e-3)))
-            mt_gain = float(np.median(np.array(mt_gt) / np.maximum(np.array(mt_pred), 1e-3)))
-            # Clamp gains to avoid wild extrapolation from 1–2 points
-            fl_gain = float(np.clip(fl_gain, 0.75, 1.35))
-            mt_gain = float(np.clip(mt_gain, 0.75, 1.35))
-            out["fl_mm"] = out["fl_mm"] * fl_gain
-            out["mt_mm"] = out["mt_mm"] * mt_gain
-            print(f"Residual gains fl={fl_gain:.3f} mt={mt_gain:.3f}")
-    elif skip_sample_gain:
-        print(f"Sample residual gains skipped (n_ocr={n_ocr})")
+    print(f"Sample residual gains disabled (n_ocr={n_ocr})")
 
     out["pa_deg"] = out["pa_deg"].fillna(15.0)
     out["fl_mm"] = out["fl_mm"].fillna(70.0)
