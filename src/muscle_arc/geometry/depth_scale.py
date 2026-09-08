@@ -350,6 +350,11 @@ def estimate_depth_scale(img: np.ndarray) -> DepthScaleResult:
     if best_tick is not None:
         return best_tick
 
+    # Cropped / no chrome: discrete depth hypotheses over sector height
+    hyp = depth_hypothesis_search(gray, sector=sector, kind=kind)
+    if hyp is not None:
+        return hyp
+
     return DepthScaleResult(
         mm_per_pixel=None,
         px_per_cm=None,
@@ -361,15 +366,65 @@ def estimate_depth_scale(img: np.ndarray) -> DepthScaleResult:
     )
 
 
-def load_depth_scale_table(path: Path | str) -> dict[str, float]:
-    """Build image_id/stem -> mm_per_pixel from audit CSV."""
+def depth_hypothesis_search(
+    gray: np.ndarray,
+    sector: tuple[int, int, int, int] | None = None,
+    kind: str = "cropped",
+    depths_cm: tuple[float, ...] = (3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0),
+) -> DepthScaleResult | None:
+    """For cropped frames: mm/px = 10 * d_cm / sector_height (discrete d).
+
+    Scores hypotheses by landing mm/px in the ultrasound band. Prefer when OCR fails.
+    """
+    h, w = gray.shape[:2]
+    if sector is not None:
+        sh = float(sector[3])
+    else:
+        sh = float(h)  # sector fills frame
+    if sh < 32:
+        return None
+    best: DepthScaleResult | None = None
+    best_score = 1e9
+    for d in depths_cm:
+        mm = 10.0 * float(d) / sh
+        if not (_MM_LO <= mm <= _MM_HI):
+            continue
+        # Prefer mid-band ultrasound scales (~0.05–0.09)
+        score = abs(mm - _MM_PRIOR) / max(_MM_PRIOR, 1e-6)
+        # Mild preference for common clinical depths
+        score += 0.02 * abs(d - 4.5)
+        if score < best_score:
+            best_score = score
+            conf = 0.55 if kind == "cropped" else 0.45
+            best = DepthScaleResult(
+                mm_per_pixel=float(mm),
+                px_per_cm=10.0 / float(mm),
+                depth_cm=float(d),
+                sector=sector,
+                source=f"depth_hyp_{d:g}cm",
+                confidence=conf,
+                text="",
+            )
+    return best
+
+
+def load_depth_scale_table(
+    path: Path | str,
+    *,
+    return_confidence: bool = False,
+) -> dict[str, float] | tuple[dict[str, float], dict[str, float]]:
+    """Build image_id/stem -> mm_per_pixel from audit CSV.
+
+    When return_confidence=True, also return image_id/stem -> confidence.
+    """
     path = Path(path)
     if not path.exists():
-        return {}
+        return ({}, {}) if return_confidence else {}
     df = pd.read_csv(path)
     out: dict[str, float] = {}
+    conf_out: dict[str, float] = {}
     if "mm_per_pixel" not in df.columns:
-        return out
+        return ({}, {}) if return_confidence else {}
     for _, r in df.iterrows():
         mm = r.get("mm_per_pixel")
         if pd.isna(mm):
@@ -390,6 +445,10 @@ def load_depth_scale_table(path: Path | str) -> dict[str, float]:
             continue
         out[iid] = mm
         out[Path(iid).stem] = mm
+        conf_out[iid] = conf
+        conf_out[Path(iid).stem] = conf
+    if return_confidence:
+        return out, conf_out
     return out
 
 
@@ -397,24 +456,52 @@ def share_scales_in_groups(
     image_ids: list[str],
     scales: dict[str, float],
     groups: list[list[int]],
+    confidences: dict[str, float] | None = None,
+    min_conf: float = 0.55,
 ) -> dict[str, float]:
-    """Propagate median confident scale within each 5-frame (or shape) group."""
+    """Propagate median high-confidence scale within each 5-frame (or shape) group.
+
+    Only values with confidence >= min_conf vote for the group median. Existing
+    high-conf members keep their own scale; low-conf / missing members inherit
+    the group median (Thwaits: runs share one scale by construction).
+    """
+    confidences = confidences or {}
     out = dict(scales)
+
+    def _lookup(iid: str) -> tuple[float | None, float]:
+        stem = Path(iid).stem
+        mm = scales.get(iid, scales.get(stem))
+        conf = confidences.get(iid, confidences.get(stem, 1.0 if mm is not None else 0.0))
+        return (float(mm) if mm is not None else None), float(conf)
+
     for idxs in groups:
-        vals = []
+        hi_vals: list[float] = []
+        for i in idxs:
+            mm, conf = _lookup(image_ids[i])
+            if mm is not None and conf >= min_conf:
+                hi_vals.append(mm)
+        if not hi_vals:
+            # Fallback: any available scale in the group
+            any_vals = []
+            for i in idxs:
+                mm, _ = _lookup(image_ids[i])
+                if mm is not None:
+                    any_vals.append(mm)
+            if not any_vals:
+                continue
+            med = float(np.median(any_vals))
+        else:
+            med = float(np.median(hi_vals))
         for i in idxs:
             iid = image_ids[i]
-            if iid in scales:
-                vals.append(scales[iid])
-            elif Path(iid).stem in scales:
-                vals.append(scales[Path(iid).stem])
-        if not vals:
-            continue
-        med = float(np.median(vals))
-        for i in idxs:
-            iid = image_ids[i]
-            out[iid] = med
-            out[Path(iid).stem] = med
+            mm, conf = _lookup(iid)
+            # Keep own high-conf measurement; fill gaps / low-conf with group med
+            if mm is not None and conf >= min_conf:
+                out[iid] = mm
+                out[Path(iid).stem] = mm
+            else:
+                out[iid] = med
+                out[Path(iid).stem] = med
     return out
 
 
