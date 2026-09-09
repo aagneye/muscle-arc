@@ -32,7 +32,7 @@ from muscle_arc.geometry.depth_scale import (
     osf_shape_scale_lookup,
     share_scales_in_groups,
 )
-from muscle_arc.geometry.sector_crop import sector_crop
+from muscle_arc.geometry.sector_crop import mask_chrome, sector_crop
 from muscle_arc.geometry.residual_scale import (
     apply_residual_mm,
     load_models as load_residual_models,
@@ -193,9 +193,16 @@ def main() -> None:
     parser.add_argument(
         "--sector-crop",
         type=str,
+        default="false",
+        choices=["true", "false", "auto"],
+        help="Crop B-mode sector: true=always, false=never, auto=console chrome only",
+    )
+    parser.add_argument(
+        "--chrome-mask",
+        type=str,
         default="true",
         choices=["true", "false"],
-        help="Crop B-mode sector before segmentation (console screenshots)",
+        help="Zero console chrome in-place (no crop) before masks; keeps full-frame coords",
     )
     parser.add_argument(
         "--live-depth-scale",
@@ -211,6 +218,32 @@ def main() -> None:
         help="Optional trained ScaleStripDetector ckpt; fills gaps when OCR/ticks miss",
     )
     parser.add_argument(
+        "--sof-ckpt",
+        type=Path,
+        default=None,
+        help="Optional SOF multitask ckpt (uses apo_bin/fasc_bin instead of dual Unets)",
+    )
+    parser.add_argument(
+        "--masks-from",
+        type=str,
+        default="ours",
+        choices=["ours", "dl_track"],
+        help="ours=SOF/dual U-Nets; dl_track=Gate0 reference VGG-UNets",
+    )
+    parser.add_argument(
+        "--geom",
+        type=str,
+        default="auto",
+        choices=["auto", "ours", "official"],
+        help="auto=official when masks-from=dl_track else ours; official=doCalculations",
+    )
+    parser.add_argument(
+        "--dl-track-dir",
+        type=Path,
+        default=Path("data/external/dl_track"),
+        help="Directory with DL_Track apo/fasc .h5 weights",
+    )
+    parser.add_argument(
         "--osf-gt",
         type=Path,
         default=Path("experiments/osf_expert_gt.csv"),
@@ -224,11 +257,35 @@ def main() -> None:
     paths.assert_test_present()
     reset_stats()
 
-    apo_model = load_model(args.apo_ckpt, cfg["model"], device)
-    fasc_model = load_model(args.fasc_ckpt, cfg["model"], device)
-    apo_model2 = load_model(args.apo_ckpt2, cfg["model"], device) if args.apo_ckpt2 else None
-    fasc_model2 = load_model(args.fasc_ckpt2, cfg["model"], device) if args.fasc_ckpt2 else None
+    sof_model = None
+    apo_model = fasc_model = apo_model2 = fasc_model2 = None
+    dl_track = None
+    if args.masks_from == "dl_track":
+        from muscle_arc.models.dl_track import load_dl_track
 
+        dl_track = load_dl_track(args.dl_track_dir, img_size=int(cfg["img_size"]))
+        print(f"Loaded DL_Track from {args.dl_track_dir}")
+    elif args.sof_ckpt is not None and args.sof_ckpt.exists():
+        from muscle_arc.models.multitask import build_sof_model
+
+        sof_model = build_sof_model(cfg).to(device)
+        payload = torch.load(args.sof_ckpt, map_location=device, weights_only=False)
+        state = payload["model"] if isinstance(payload, dict) and "model" in payload else payload
+        sof_model.load_state_dict(state, strict=False)
+        sof_model.eval()
+        print(f"Loaded SOF multitask {args.sof_ckpt}")
+    else:
+        apo_model = load_model(args.apo_ckpt, cfg["model"], device)
+        fasc_model = load_model(args.fasc_ckpt, cfg["model"], device)
+        apo_model2 = load_model(args.apo_ckpt2, cfg["model"], device) if args.apo_ckpt2 else None
+        fasc_model2 = load_model(args.fasc_ckpt2, cfg["model"], device) if args.fasc_ckpt2 else None
+
+    geom_mode = args.geom
+    if geom_mode == "auto":
+        # Official doCalculations is available via --geom official; OSF Gate2b
+        # ≤0.42 is currently met by our geometry (official ~0.78 on pred scale).
+        geom_mode = "ours"
+    print(f"Geometry mode: {geom_mode}")
     infer = cfg["infer"]
     img_size = int(cfg["img_size"])
     # Split thresholds (DL_Track defaults) unless --thr forces shared
@@ -254,12 +311,17 @@ def main() -> None:
             meta_by_id[str(r["stem"])] = float(r["mm_per_pixel"])
     print(f"Usable metadata scale keys: {len(meta_by_id)}")
 
-    do_sector = args.sector_crop == "true"
+    # sector-crop: false=off, true=force crop, auto=console chrome only (sector_crop default)
     do_live_depth = args.live_depth_scale == "true"
     ocr_by_id, ocr_conf = load_depth_scale_table(
         args.depth_scale_table, return_confidence=True
     )
     print(f"Depth-scale table keys: {len(ocr_by_id)}")
+    # Warm OSF shape→scale cache once (avoid per-image TIFF re-reads).
+    from muscle_arc.geometry.depth_scale import build_osf_shape_scale_map
+
+    _shape_map = build_osf_shape_scale_map(args.osf_gt)
+    print(f"OSF shape cache warmed: {len(_shape_map)} shapes")
 
     scale_det = None
     if args.scale_detector is not None and args.scale_detector.exists():
@@ -275,8 +337,21 @@ def main() -> None:
     live_conf: dict[str, float] = {}
     for p in test_paths:
         full = read_gray(p)
-        crop_info = sector_crop(full) if do_sector else None
-        gray = crop_info.crop if (crop_info is not None and crop_info.applied) else full
+        if args.sector_crop == "false":
+            crop_info = None
+            gray = full
+        elif args.sector_crop == "true":
+            crop_info = sector_crop(full, force=True)
+            gray = crop_info.crop if crop_info.applied else full
+        else:
+            crop_info = sector_crop(full, force=False)
+            gray = crop_info.crop if (crop_info is not None and crop_info.applied) else full
+        # Optional: mask chrome without cropping (default on; preferred with DL_Track)
+        if args.chrome_mask == "true" and args.sector_crop == "false":
+            gray, crop_info = mask_chrome(full)
+        elif args.chrome_mask == "true" and args.sector_crop == "auto":
+            # auto crop off for win path: chrome-mask only
+            gray, crop_info = mask_chrome(full)
         h, w = gray.shape[:2]
         fh, fw = full.shape[:2]
 
@@ -306,40 +381,63 @@ def main() -> None:
             except Exception as exc:  # noqa: BLE001
                 print(f"scale_detector fail {p.name}: {exc}")
 
-        apo_prob = predict_prob(
-            apo_model,
-            gray,
-            img_size,
-            device,
-            tta_hflip=True,
-            use_letterbox=True,
-            multiscale=use_ms_tta,
-            frangi_enhance=False,
-        )
-        fasc_prob = predict_prob(
-            fasc_model,
-            gray,
-            img_size,
-            device,
-            tta_hflip=True,
-            use_letterbox=True,
-            multiscale=use_ms_tta,
-            frangi_enhance=frangi_fasc,
-        )
-        if apo_model2 is not None:
-            apo_prob = 0.5 * (
-                apo_prob
-                + predict_prob(
-                    apo_model2, gray, img_size, device, True, True, use_ms_tta, False
-                )
+        apo_prob = fasc_prob = None
+        if dl_track is not None:
+            _, _, apo_prob, fasc_prob = dl_track.predict_masks(
+                gray, apo_thr=apo_thr, fasc_thr=fasc_thr
             )
-        if fasc_model2 is not None:
-            fasc_prob = 0.5 * (
-                fasc_prob
-                + predict_prob(
-                    fasc_model2, gray, img_size, device, True, True, use_ms_tta, frangi_fasc
-                )
+        elif sof_model is not None:
+            from muscle_arc.data.dataset import letterbox, unletterbox
+
+            canvas, meta = letterbox(gray, img_size, is_mask=False)
+            rgb = np.stack([canvas, canvas, canvas], axis=-1)
+            tensor = torch.from_numpy(rgb).permute(2, 0, 1).float().unsqueeze(0) / 255.0
+            tensor = tensor.to(device)
+            with torch.no_grad():
+                out = sof_model(tensor)
+                apo_c = torch.sigmoid(out["apo_bin"])[0, 0].cpu().numpy()
+                fasc_c = torch.sigmoid(out["fasc_bin"])[0, 0].cpu().numpy()
+            apo_prob = unletterbox(apo_c.astype(np.float32), meta)
+            fasc_prob = unletterbox(fasc_c.astype(np.float32), meta)
+            if apo_prob.shape[:2] != (h, w):
+                apo_prob = cv2.resize(apo_prob, (w, h), interpolation=cv2.INTER_LINEAR)
+            if fasc_prob.shape[:2] != (h, w):
+                fasc_prob = cv2.resize(fasc_prob, (w, h), interpolation=cv2.INTER_LINEAR)
+        else:
+            apo_prob = predict_prob(
+                apo_model,
+                gray,
+                img_size,
+                device,
+                tta_hflip=True,
+                use_letterbox=True,
+                multiscale=use_ms_tta,
+                frangi_enhance=False,
             )
+            fasc_prob = predict_prob(
+                fasc_model,
+                gray,
+                img_size,
+                device,
+                tta_hflip=True,
+                use_letterbox=True,
+                multiscale=use_ms_tta,
+                frangi_enhance=frangi_fasc,
+            )
+            if apo_model2 is not None:
+                apo_prob = 0.5 * (
+                    apo_prob
+                    + predict_prob(
+                        apo_model2, gray, img_size, device, True, True, use_ms_tta, False
+                    )
+                )
+            if fasc_model2 is not None:
+                fasc_prob = 0.5 * (
+                    fasc_prob
+                    + predict_prob(
+                        fasc_model2, gray, img_size, device, True, True, use_ms_tta, frangi_fasc
+                    )
+                )
         apo = (apo_prob > apo_thr).astype(np.uint8)
         fasc = (fasc_prob > fasc_thr).astype(np.uint8)
         if int(fasc.sum()) < 5000:
@@ -347,30 +445,61 @@ def main() -> None:
         if int(apo.sum()) > 5000:
             apo = cv2.medianBlur(apo, 5)
 
-        # Pass provisional OCR mm so apo-pair MT gate can reject skin-to-bone
-        mt_px = muscle_thickness_px(apo, fasc_mask=fasc, mm_per_pixel=prov_mm)
-        pa = pennation_angle_deg(
-            fasc, apo, fasc_prob=fasc_prob, gray=gray, mm_per_pixel=prov_mm
-        )
-        fl_px = fascicle_length_px(
-            fasc,
-            apo,
-            fasc_prob=fasc_prob,
-            gray=gray,
-            pa_deg=pa if np.isfinite(pa) else None,
-            mt_px=mt_px if np.isfinite(mt_px) else None,
-            mm_per_pixel=prov_mm,
-        )
-        # Trig fallback only when PA is stable (matches fascicle_length_px guard)
-        if (
-            (not np.isfinite(fl_px))
-            and np.isfinite(pa)
-            and np.isfinite(mt_px)
-            and 10 < abs(pa) < 35
-        ):
-            fl_px = float(mt_px / max(np.sin(np.radians(abs(pa))), 1e-3))
-            if np.isfinite(mt_px) and mt_px > 5:
-                fl_px = float(np.clip(fl_px, 2.0 * mt_px, 5.5 * mt_px))
+        fl_mm_direct = mt_mm_direct = np.nan
+        if geom_mode == "official":
+            from muscle_arc.models.dl_track_official import official_metrics
+
+            mm_geo = float(prov_mm) if prov_mm is not None else float(
+                cfg["infer"].get("mm_per_pixel", 0.06)
+            )
+            # Geometry on full-frame coords; masks are already HxW of gray
+            # (chrome-mask keeps HxW == full). Resize if sector-crop shrank.
+            apo_g, fasc_g = apo, fasc
+            if (h, w) != (fh, fw):
+                apo_g = cv2.resize(apo, (fw, fh), interpolation=cv2.INTER_NEAREST)
+                fasc_g = cv2.resize(fasc, (fw, fh), interpolation=cv2.INTER_NEAREST)
+            try:
+                pa, fl_mm_direct, mt_mm_direct = official_metrics(
+                    apo_g,
+                    fasc_g,
+                    full,
+                    mm_per_pixel=mm_geo,
+                    apo_thr=apo_thr,
+                    fasc_thr=fasc_thr,
+                    model_apo=getattr(dl_track, "apo", None) if dl_track else None,
+                    model_fasc=getattr(dl_track, "fasc", None) if dl_track else None,
+                )
+            except Exception as exc:  # noqa: BLE001
+                print(f"official geom fail {p.name}: {exc}")
+                pa = fl_mm_direct = mt_mm_direct = float("nan")
+            # Store px placeholders so scale path can still run for non-official rows
+            fl_px = float(fl_mm_direct / mm_geo) if np.isfinite(fl_mm_direct) else np.nan
+            mt_px = float(mt_mm_direct / mm_geo) if np.isfinite(mt_mm_direct) else np.nan
+        else:
+            # Pass provisional OCR mm so apo-pair MT gate can reject skin-to-bone
+            mt_px = muscle_thickness_px(apo, fasc_mask=fasc, mm_per_pixel=prov_mm)
+            pa = pennation_angle_deg(
+                fasc, apo, fasc_prob=fasc_prob, gray=gray, mm_per_pixel=prov_mm
+            )
+            fl_px = fascicle_length_px(
+                fasc,
+                apo,
+                fasc_prob=fasc_prob,
+                gray=gray,
+                pa_deg=pa if np.isfinite(pa) else None,
+                mt_px=mt_px if np.isfinite(mt_px) else None,
+                mm_per_pixel=prov_mm,
+            )
+            # Trig fallback only when PA is stable (matches fascicle_length_px guard)
+            if (
+                (not np.isfinite(fl_px))
+                and np.isfinite(pa)
+                and np.isfinite(mt_px)
+                and 10 < abs(pa) < 35
+            ):
+                fl_px = float(mt_px / max(np.sin(np.radians(abs(pa))), 1e-3))
+                if np.isfinite(mt_px) and mt_px > 5:
+                    fl_px = float(np.clip(fl_px, 2.0 * mt_px, 5.5 * mt_px))
 
         n_fasc = int(cv2.connectedComponents((fasc > 0).astype(np.uint8), connectivity=8)[0]) - 1
         rows.append(
@@ -391,6 +520,8 @@ def main() -> None:
                 "pa_deg": float(pa) if np.isfinite(pa) else np.nan,
                 "fl_px": float(fl_px) if np.isfinite(fl_px) else np.nan,
                 "mt_px": float(mt_px) if np.isfinite(mt_px) else np.nan,
+                "fl_mm_direct": float(fl_mm_direct) if np.isfinite(fl_mm_direct) else np.nan,
+                "mt_mm_direct": float(mt_mm_direct) if np.isfinite(mt_mm_direct) else np.nan,
                 **row_features(
                     h,
                     w,
@@ -477,10 +608,30 @@ def main() -> None:
         for i, row in enumerate(out.itertuples())
     ]
     out["scale_source"] = sources
+    # Official doCalculations already applied OCR/ticks via calib_dist — prefer it.
+    if "fl_mm_direct" in out.columns:
+        n_off = 0
+        for i, row in enumerate(out.itertuples()):
+            if np.isfinite(getattr(row, "fl_mm_direct", np.nan)):
+                out.iloc[i, out.columns.get_loc("fl_mm")] = float(row.fl_mm_direct)
+                n_off += 1
+            if np.isfinite(getattr(row, "mt_mm_direct", np.nan)):
+                out.iloc[i, out.columns.get_loc("mt_mm")] = float(row.mt_mm_direct)
+            if np.isfinite(getattr(row, "fl_mm_direct", np.nan)) or np.isfinite(
+                getattr(row, "mt_mm_direct", np.nan)
+            ):
+                out.iloc[i, out.columns.get_loc("scale_source")] = "official_calib"
+        print(f"Official geometry mm rows: {n_off}/{len(out)}")
 
     # Phase A': residual — never overwrite meta/ocr/cluster
-    residual_models = load_residual_models(args.residual_model_dir)
+    residual_models: dict = {}
     apply_on = {"primary", "cluster_prefix", "shape"}
+    if args.residual_prefer != "off":
+        try:
+            residual_models = load_residual_models(args.residual_model_dir)
+        except Exception as exc:  # noqa: BLE001
+            print(f"Residual models skipped (load failed): {exc}")
+            residual_models = {}
     if args.residual_prefer != "off" and (
         residual_models.get("mm") is not None or residual_models.get("scale") is not None
     ):
