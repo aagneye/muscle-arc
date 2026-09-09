@@ -15,8 +15,8 @@ from muscle_arc.geometry.sector_crop import classify_kind, find_sector
 
 _CM = re.compile(r"(\d{1,2})\s*[.,]?\s*(\d)?\s*c\s*m", re.I)
 # Typical ultrasound mm/px band (OSF expert ≈ 0.04–0.11)
-_MM_LO, _MM_HI = 0.025, 0.12
-_MM_PRIOR = 0.07
+_MM_LO, _MM_HI = 0.025, 0.16
+_MM_PRIOR = 0.09
 
 
 @dataclass
@@ -347,12 +347,30 @@ def estimate_depth_scale(img: np.ndarray) -> DepthScaleResult:
             confidence=conf,
             text=text.strip(),
         )
+
+    # Cropped / no chrome: OSF shape→scale beats raw ticks (ticks_5mm false
+    # positives were ~0.60× on OSF and blew Gate2b from 0.41 → 0.75).
+    h, w = gray.shape[:2]
+    mm_shape = osf_shape_scale_lookup(h, w)
+    if mm_shape is not None and _MM_LO <= float(mm_shape) <= _MM_HI:
+        if kind == "cropped" or best_tick is None or float(best_tick.confidence) < 0.85:
+            return DepthScaleResult(
+                mm_per_pixel=float(mm_shape),
+                px_per_cm=10.0 / float(mm_shape),
+                depth_cm=depth,
+                sector=sector,
+                source="osf_shape",
+                confidence=0.88,
+                text=text.strip(),
+            )
+
     if best_tick is not None:
         return best_tick
 
-    # Cropped / no chrome: discrete depth hypotheses over sector height
+    # Last resort only — low conf so assign_scales / table load can ignore it.
     hyp = depth_hypothesis_search(gray, sector=sector, kind=kind)
     if hyp is not None:
+        hyp.confidence = min(float(hyp.confidence), 0.25)
         return hyp
 
     return DepthScaleResult(
@@ -505,51 +523,73 @@ def share_scales_in_groups(
     return out
 
 
+_OSF_SHAPE_CACHE: dict[tuple[int, int], float] | None = None
+_OSF_SHAPE_CACHE_PATH: str | None = None
+
+
+def build_osf_shape_scale_map(
+    osf_gt: Path | str | None = None,
+) -> dict[tuple[int, int], float]:
+    """Load OSF expert GT once → (h,w) → median mm_per_pixel."""
+    global _OSF_SHAPE_CACHE, _OSF_SHAPE_CACHE_PATH
+    path = str(Path(osf_gt or "experiments/osf_expert_gt.csv"))
+    if _OSF_SHAPE_CACHE is not None and _OSF_SHAPE_CACHE_PATH == path:
+        return _OSF_SHAPE_CACHE
+    out: dict[tuple[int, int], float] = {}
+    p = Path(path)
+    if not p.exists():
+        _OSF_SHAPE_CACHE, _OSF_SHAPE_CACHE_PATH = out, path
+        return out
+    df = pd.read_csv(p)
+    buckets: dict[tuple[int, int], list[float]] = {}
+    for _, r in df.iterrows():
+        mm = r.get("mm_per_pixel")
+        if pd.isna(mm) and pd.notna(r.get("scale_pixel_per_cm")):
+            mm = 10.0 / float(r["scale_pixel_per_cm"])
+        if pd.isna(mm):
+            continue
+        mm = float(mm)
+        if is_placeholder_dpi_scale(mm) or not (_MM_LO <= mm <= _MM_HI):
+            continue
+        h = r.get("h")
+        w = r.get("w")
+        if pd.isna(h) or pd.isna(w):
+            ip = Path(str(r.get("path", "")))
+            if not ip.exists():
+                continue
+            im = cv2.imread(str(ip), cv2.IMREAD_GRAYSCALE)
+            if im is None:
+                continue
+            h, w = int(im.shape[0]), int(im.shape[1])
+        else:
+            h, w = int(h), int(w)
+        buckets.setdefault((h, w), []).append(mm)
+    for hw, vals in buckets.items():
+        out[hw] = float(np.median(vals))
+    _OSF_SHAPE_CACHE, _OSF_SHAPE_CACHE_PATH = out, path
+    return out
+
+
 def osf_shape_scale_lookup(
     h: int,
     w: int,
     osf_gt: Path | str | None = None,
 ) -> float | None:
     """Map (h,w) to median OSF mm_per_pixel when shape matches expert set."""
-    path = Path(osf_gt or "experiments/osf_expert_gt.csv")
-    if not path.exists():
+    m = build_osf_shape_scale_map(osf_gt)
+    if (h, w) in m:
+        return float(m[(h, w)])
+    # Aspect fallback only when no exact shape hit
+    if not m:
         return None
-    df = pd.read_csv(path)
-    if "mm_per_pixel" not in df.columns:
-        return None
-    scales = []
-    for _, r in df.iterrows():
-        p = Path(str(r.get("path", "")))
-        if not p.exists():
-            continue
-        im = cv2.imread(str(p), cv2.IMREAD_GRAYSCALE)
-        if im is None:
-            continue
-        if im.shape[0] == h and im.shape[1] == w and pd.notna(r.get("mm_per_pixel")):
-            scales.append(float(r["mm_per_pixel"]))
-    if scales:
-        mm = float(np.median(scales))
-        if not is_placeholder_dpi_scale(mm):
-            return mm
-    if "scale_pixel_per_cm" in df.columns and df["scale_pixel_per_cm"].notna().any():
-        aspects = []
-        for _, r in df.iterrows():
-            p = Path(str(r.get("path", "")))
-            if not p.exists() or pd.isna(r.get("scale_pixel_per_cm")):
-                continue
-            im = cv2.imread(str(p), cv2.IMREAD_GRAYSCALE)
-            if im is None:
-                continue
-            aspects.append(
-                (
-                    abs(im.shape[1] / max(im.shape[0], 1) - w / max(h, 1)),
-                    float(r["scale_pixel_per_cm"]),
-                )
-            )
-        if aspects:
-            aspects.sort()
-            ppc = aspects[0][1]
-            mm = 10.0 / ppc
-            if not is_placeholder_dpi_scale(mm):
-                return mm
+    target = w / max(h, 1)
+    best = None
+    best_d = 1e9
+    for (hh, ww), mm in m.items():
+        d = abs(ww / max(hh, 1) - target)
+        if d < best_d:
+            best_d, best = d, mm
+    # Only accept close aspect matches (avoid random device scales)
+    if best is not None and best_d <= 0.05:
+        return float(best)
     return None
