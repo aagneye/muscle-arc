@@ -33,6 +33,7 @@ def _column_inner_edges(apo: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     y_s = np.full(w, np.nan, dtype=np.float64)
     y_d = np.full(w, np.nan, dtype=np.float64)
     binary = (apo > 0).astype(np.uint8)
+    max_gap = 0.42 * h  # thicker than this is almost always wrong faces
     for x in range(w):
         col = binary[:, x]
         ys = np.flatnonzero(col)
@@ -48,29 +49,31 @@ def _column_inner_edges(apo: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         runs.append(ys[start:])
         runs = [r for r in runs if len(r) >= 1]
         if len(runs) >= 2:
-            upper, lower = runs[0], runs[-1]
-            # Prefer runs with meaningful vertical separation
-            if float(lower[0] - upper[-1]) < 0.04 * h:
-                # try adjacent pair with max separation among first/last few
-                best = None
-                best_sep = -1.0
-                for i in range(len(runs) - 1):
-                    sep = float(runs[i + 1][0] - runs[i][-1])
-                    if sep > best_sep:
-                        best_sep = sep
-                        best = (runs[i], runs[i + 1])
-                if best is None or best_sep < 0.04 * h:
+            # Prefer the adjacent run pair with max separation among mid-belly candidates
+            best = None
+            best_sep = -1.0
+            for i in range(len(runs) - 1):
+                sep = float(runs[i + 1][0] - runs[i][-1])
+                if sep < 0.04 * h or sep > max_gap:
                     continue
+                # Prefer pairs whose midpoint sits in the central 70% of the image
+                mid = 0.5 * (float(runs[i][-1]) + float(runs[i + 1][0]))
+                if mid < 0.08 * h or mid > 0.92 * h:
+                    continue
+                if sep > best_sep:
+                    best_sep = sep
+                    best = (runs[i], runs[i + 1])
+            if best is None:
+                # Fallback: first/last only if separation is plausible
+                upper, lower = runs[0], runs[-1]
+                sep = float(lower[0] - upper[-1])
+                if sep < 0.04 * h or sep > max_gap:
+                    continue
+            else:
                 upper, lower = best
             y_s[x] = float(upper[-1])  # inner bottom of superficial
             y_d[x] = float(lower[0])  # inner top of deep
-        elif len(runs) == 1 and len(runs[0]) >= 4:
-            # Single thick band — use 20/80 percentiles as faces (weak)
-            r = runs[0]
-            y_s[x] = float(np.percentile(r, 20))
-            y_d[x] = float(np.percentile(r, 80))
-            if y_d[x] - y_s[x] < 0.05 * h:
-                y_s[x] = y_d[x] = np.nan
+        # Do not invent faces from a single thick run — that caused 2–3× MT outliers.
     return y_s, y_d
 
 
@@ -162,7 +165,15 @@ def thickness_from_surfaces(surfaces: ApoSurfaces) -> float:
     valid = surfaces.valid_mask()
     if not np.any(valid):
         return float("nan")
-    return float(np.median(surfaces.y_deep[valid] - surfaces.y_super[valid]))
+    gaps = surfaces.y_deep[valid] - surfaces.y_super[valid]
+    if len(gaps) >= 8:
+        q1, q3 = np.percentile(gaps, [25, 75])
+        iqr = float(q3 - q1)
+        lo, hi = float(q1 - 1.5 * iqr), float(q3 + 1.5 * iqr)
+        keep = gaps[(gaps >= lo) & (gaps <= hi)]
+        if len(keep) >= 4:
+            gaps = keep
+    return float(np.median(gaps))
 
 
 def line_from_surface(
