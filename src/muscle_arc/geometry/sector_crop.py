@@ -50,18 +50,55 @@ def _extend(profile: np.ndarray, run: tuple[int, int] | None, frac: float) -> tu
 
 
 def find_sector(gray: np.ndarray, floor: int = 12) -> tuple[int, int, int, int] | None:
-    """Bounding box (x, y, w, h) of the B-mode sector via row/column occupancy."""
+    """Bounding box (x, y, w, h) of the B-mode sector via row/column occupancy.
+
+    Siemens 800×1200 consoles often light the full width (UI + colour bar), so a
+    plain occupancy run yields a false full-frame box like (0, 39, 1200, 761).
+    Prefer an *interior* high-occupancy band when edge chrome is present.
+    """
     nz = gray > floor
     if not nz.any():
         return None
+    h0, w0 = gray.shape[:2]
     col = nz.mean(axis=0)
     row = nz.mean(axis=1)
-    cs = _extend(col, _longest_run(col > 0.5 * float(col.max())), 0.15)
-    rs = _extend(row, _longest_run(row > 0.5 * float(row.max())), 0.15)
+    cmax = float(col.max())
+    rmax = float(row.max())
+    cs = _extend(col, _longest_run(col > 0.5 * cmax), 0.15)
+    rs = _extend(row, _longest_run(row > 0.5 * rmax), 0.15)
     if cs is None or rs is None:
         return None
     x, w = cs[0], cs[1] - cs[0]
     y, h = rs[0], rs[1] - rs[0]
+
+    # Full-width / near-full-width: try a stricter interior column band.
+    # Typical console: dark/UI margins + bright sector in the middle third+.
+    fill_w = w / max(w0, 1)
+    if fill_w > 0.88 and w0 >= 600:
+        # Ignore outer 8% columns (colour bar / menu) and re-detect.
+        margin = max(8, int(0.08 * w0))
+        col_i = col.copy()
+        col_i[:margin] = 0.0
+        col_i[-margin:] = 0.0
+        if float(col_i.max()) > 0.15:
+            cs2 = _extend(col_i, _longest_run(col_i > 0.55 * float(col_i.max())), 0.12)
+            if cs2 is not None:
+                x2, w2 = cs2[0], cs2[1] - cs2[0]
+                # Accept only if we actually found an interior band
+                if w2 < 0.88 * w0 and w2 > 0.35 * w0:
+                    x, w = x2, w2
+        # Secondary: brightest contiguous mid-band by column energy
+        if w / max(w0, 1) > 0.88:
+            energy = gray.mean(axis=0).astype(np.float64)
+            energy[:margin] = 0.0
+            energy[-margin:] = 0.0
+            thr = 0.55 * float(energy.max()) if energy.max() > 0 else 0.0
+            cs3 = _extend(energy, _longest_run(energy > thr), 0.10)
+            if cs3 is not None:
+                x3, w3 = cs3[0], cs3[1] - cs3[0]
+                if 0.35 * w0 < w3 < 0.88 * w0:
+                    x, w = x3, w3
+
     if w < 40 or h < 40:
         return None
     return int(x), int(y), int(w), int(h)
@@ -122,3 +159,47 @@ def sector_crop(
     y1 = min(h, y + sh + pad)
     crop = full[y0:y1, x0:x1].copy()
     return SectorCrop(crop, (x0, y0, x1 - x0, y1 - y0), kind, chrome, applied=True)
+
+
+def mask_chrome(
+    gray: np.ndarray,
+    *,
+    pad: int = 2,
+    min_fill: float = 0.35,
+) -> tuple[np.ndarray, SectorCrop]:
+    """Zero pixels outside the B-mode sector **without cropping**.
+
+    Keeps full-frame coordinates (scale + geometry stay aligned) while removing
+    console chrome that confuses DL_Track / apo pairing. No-op on cropped frames.
+    """
+    full = gray if gray.ndim == 2 else cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
+    h, w = full.shape[:2]
+    sector = find_sector(full)
+    kind, chrome = classify_kind(full, sector)
+    info = SectorCrop(full, (0, 0, w, h), kind, chrome, applied=False)
+    # Require *real* outside chrome (UI text/rulers). Black-border crops
+    # (OSF) often have fill<0.72 and get mis-labeled console — do not mask them.
+    if sector is None or chrome < 0.035:
+        return full, info
+    x, y, sw, sh = sector
+    fill = (sw * sh) / max(h * w, 1.0)
+    # Refuse tiny/wrong boxes (over-mask). Near-full frames after Siemens
+    # interior detection still get a soft edge fade rather than a no-op.
+    if fill < min_fill:
+        return full, info
+    x0 = max(0, x - pad)
+    y0 = max(0, y - pad)
+    x1 = min(w, x + sw + pad)
+    y1 = min(h, y + sh + pad)
+    # If the box still spans almost the whole frame, only zero thin margins
+    # when chrome is dense outside a slightly inset rectangle.
+    if fill > 0.92:
+        inset = max(4, int(0.03 * min(h, w)))
+        x0, y0 = inset, inset
+        x1, y1 = w - inset, h - inset
+        if chrome < 0.05:
+            return full, info
+    masked = np.zeros_like(full)
+    masked[y0:y1, x0:x1] = full[y0:y1, x0:x1]
+    info = SectorCrop(masked, (x0, y0, x1 - x0, y1 - y0), "console", chrome, applied=True)
+    return masked, info
