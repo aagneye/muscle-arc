@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# SOF climb: Gate0 → geometry Gate2 → align retrain / SOF → scale → gated submit.
+# SOF climb: Gate0 → dual-UNet Gate2 baseline → SOF train → fair SOF@768 Gate2 → gated submit.
+# Goal bar: honest OSF UMUD toward ≤0.37; no public-median shrink as the path to success.
 set -euo pipefail
 cd /home/azureuser/muscle-arc
 source .venv/bin/activate
@@ -9,9 +10,11 @@ mkdir -p logs experiments/checkpoints_sof experiments/checkpoints_scale submissi
 CFG="${CFG:-configs/sof.yaml}"
 APO="${APO:-experiments/checkpoints_phase4/apo_best.pt}"
 FASC="${FASC:-experiments/checkpoints_phase4/fasc_best.pt}"
+SOF_CKPT="${SOF_CKPT:-experiments/checkpoints_sof/sof_best.pt}"
 TAG="${TAG:-sof_v1}"
 AUTO_SUBMIT="${AUTO_SUBMIT:-0}"
 SKIP_SOF_TRAIN="${SKIP_SOF_TRAIN:-0}"
+REQUIRE_GATE2_UMUD="${REQUIRE_GATE2_UMUD:-0.45}"
 
 echo "=== Gate0: DL_Track + our geometry + GT scale ==="
 python -u scripts/download_dl_track.py --out-dir data/external/dl_track \
@@ -24,28 +27,38 @@ python -u scripts/eval_osf_pipeline.py \
   --gate0-out experiments/gate0_reference.json \
   2>&1 | tee "logs/${TAG}_gate0.log" || true
 
-echo "=== Gate2 ours + GT scale (geometry exam) ==="
+echo "=== Gate2 dual-UNet baseline + GT scale (phase4 @ 512) ==="
 python -u scripts/eval_osf_pipeline.py \
   --config configs/default.yaml \
   --apo-ckpt "$APO" --fasc-ckpt "$FASC" \
   --masks-from ours --scale-mode gt \
   --apo-thr 0.35 --fasc-thr 0.10 \
-  --out experiments/gate2_osf_umud.json \
-  2>&1 | tee "logs/${TAG}_gate2_gt.log" || true
-
-echo "=== Gate2b ours + predicted scale ==="
-python -u scripts/eval_osf_pipeline.py \
-  --config configs/default.yaml \
-  --apo-ckpt "$APO" --fasc-ckpt "$FASC" \
-  --masks-from ours --scale-mode pred \
-  --out experiments/gate2b_osf_pred_scale.json \
-  2>&1 | tee "logs/${TAG}_gate2b.log" || true
+  --out experiments/gate2_phase4_gt.json \
+  2>&1 | tee "logs/${TAG}_gate2_phase4.log" || true
 
 if [[ "$SKIP_SOF_TRAIN" != "1" ]]; then
   echo "=== Train SOF multitask ==="
   python -u scripts/train_multitask.py --config "$CFG" \
     2>&1 | tee "logs/${TAG}_sof_train.log" || true
 fi
+
+echo "=== Gate2 SOF@768 + GT scale (fair geometry exam) ==="
+python -u scripts/eval_osf_pipeline.py \
+  --config "$CFG" \
+  --sof-ckpt "$SOF_CKPT" \
+  --masks-from ours --scale-mode gt \
+  --apo-thr 0.35 --fasc-thr 0.10 \
+  --out experiments/gate2_osf_umud.json \
+  2>&1 | tee "logs/${TAG}_gate2_sof_gt.log" || true
+
+echo "=== Gate2b SOF@768 + predicted scale ==="
+python -u scripts/eval_osf_pipeline.py \
+  --config "$CFG" \
+  --sof-ckpt "$SOF_CKPT" \
+  --masks-from ours --scale-mode pred \
+  --apo-thr 0.35 --fasc-thr 0.10 \
+  --out experiments/gate2b_osf_pred_scale.json \
+  2>&1 | tee "logs/${TAG}_gate2b_sof.log" || true
 
 echo "=== Native scale detector ==="
 python - <<'PY'
@@ -82,10 +95,36 @@ python -u scripts/train_scale_detector.py \
   --epochs 30 \
   2>&1 | tee "logs/${TAG}_scale_native.log" || true
 
-echo "=== Infer ${TAG} ==="
+# Only infer/submit when fair Gate2 UMUD is near the climb bar (default 0.45; goal is <0.37).
+GATE2_UMUD="$(python -c "import json; print(json.load(open('experiments/gate2_osf_umud.json')).get('umud', 9))" 2>/dev/null || echo 9)"
+echo "Fair Gate2 SOF UMUD=${GATE2_UMUD} (require <= ${REQUIRE_GATE2_UMUD})"
+python - <<PY
+import sys
+umud = float("${GATE2_UMUD}")
+bar = float("${REQUIRE_GATE2_UMUD}")
+sys.exit(0 if umud <= bar else 1)
+PY
+GATE2_PASS=$?
+
+if [[ "$GATE2_PASS" -ne 0 ]]; then
+  echo "HOLD infer — fair Gate2 SOF UMUD ${GATE2_UMUD} > ${REQUIRE_GATE2_UMUD}; fix masks/geometry first"
+  python -u scripts/grow_report_card.py \
+    --gate0 experiments/gate0_reference.json \
+    --gate1 experiments/gate1_geometry.json \
+    --gate2 experiments/gate2_osf_umud.json \
+    --gate2b experiments/gate2b_osf_pred_scale.json \
+    --gate3 experiments/gate3_dist.json \
+    --require-gate0 \
+    --out "experiments/${TAG}_report_card.json" \
+    2>&1 | tee "logs/${TAG}_card.log" || true
+  echo "=== DONE ${TAG} (HOLD) ==="
+  exit 0
+fi
+
+echo "=== Infer ${TAG} (SOF@768, no shrink) ==="
 python -u scripts/calibrate_predict.py \
-  --config configs/default.yaml \
-  --apo-ckpt "$APO" --fasc-ckpt "$FASC" \
+  --config "$CFG" \
+  --sof-ckpt "$SOF_CKPT" \
   --out "submissions/submission_${TAG}.csv" \
   --apo-thr 0.35 --fasc-thr 0.10 \
   --temporal-smooth true --sector-crop true --live-depth-scale true \
@@ -112,6 +151,7 @@ python -u scripts/grow_report_card.py \
   --gate2 experiments/gate2_osf_umud.json \
   --gate2b experiments/gate2b_osf_pred_scale.json \
   --gate3 experiments/gate3_dist.json \
+  --require-gate0 \
   --out "experiments/${TAG}_report_card.json" \
   2>&1 | tee "logs/${TAG}_card.log" || true
 
