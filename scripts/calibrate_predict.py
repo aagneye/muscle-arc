@@ -32,6 +32,7 @@ from muscle_arc.geometry.depth_scale import (
     osf_shape_scale_lookup,
     share_scales_in_groups,
 )
+from muscle_arc.geometry.scale_fusion import ScaleCandidate, confidence_weighted_vote
 from muscle_arc.geometry.sector_crop import mask_chrome, sector_crop
 from muscle_arc.geometry.residual_scale import (
     apply_residual_mm,
@@ -157,6 +158,57 @@ def ema_smooth_groups(
     return out
 
 
+def _tick_keypoint_estimate(
+    model,
+    gray: "np.ndarray",
+    device: "torch.device",
+) -> tuple[float | None, float]:
+    """Run TickKeypointNet on the four border strips of `gray`, return the
+    highest-confidence (mm_per_pixel, confidence) among them.
+
+    Mirrors the border-strip convention already used by
+    scale_detector.extract_border_strips, but feeds each 1D max-intensity
+    profile through the heatmap keypoint model instead of a scalar-regression
+    CNN. See src/muscle_arc/models/tick_keypoint.py for the detection +
+    RulerNet-Median pitch recovery, and docs/research_scale_reader.md for the
+    design rationale.
+    """
+    import cv2
+
+    from muscle_arc.models.tick_keypoint import pitch_to_mm, predict_pitch_px
+
+    h, w = gray.shape[:2]
+    s = max(8, min(32, h // 4, w // 4))
+    if s < 8:
+        return None, 0.0
+    strips = {
+        "left": gray[:, :s],
+        "right": gray[:, w - s :],
+        "top": gray[:s, :].T,
+        "bottom": gray[h - s :, :].T,
+    }
+    best_mm: float | None = None
+    best_conf = 0.0
+    for region in strips.values():
+        if region.size == 0:
+            continue
+        profile = region.max(axis=1).astype(np.float32)
+        profile_resized = cv2.resize(profile[None, :], (256, 1), interpolation=cv2.INTER_LINEAR)[0]
+        profile_norm = profile_resized / 255.0
+        pitch_px, conf = predict_pitch_px(model, profile_norm, device)
+        if pitch_px is None or conf <= 0:
+            continue
+        # Undo the 256-resize to recover true pixel pitch on this strip.
+        scale = 256 / max(region.shape[0], 1)
+        pitch_px_native = pitch_px / scale
+        mm, _src = pitch_to_mm(pitch_px_native)
+        if not (0.025 <= mm <= 0.16):
+            continue
+        if conf > best_conf:
+            best_conf, best_mm = conf, mm
+    return best_mm, best_conf
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=Path("configs/default.yaml"))
@@ -216,6 +268,16 @@ def main() -> None:
         type=Path,
         default=None,
         help="Optional trained ScaleStripDetector ckpt; fills gaps when OCR/ticks miss",
+    )
+    parser.add_argument(
+        "--tick-keypoint-ckpt",
+        type=Path,
+        default=None,
+        help=(
+            "Optional trained TickKeypointNet ckpt (scripts/train_tick_keypoint.py); "
+            "off by default. When present, joins the scale_fusion jury alongside "
+            "OCR/ticks/OSF-shape/scale_det instead of a single hardcoded fallback."
+        ),
     )
     parser.add_argument(
         "--sof-ckpt",
@@ -330,6 +392,13 @@ def main() -> None:
         scale_det = load_scale_detector(args.scale_detector, device)
         print(f"Loaded scale detector {args.scale_detector}")
 
+    tick_kp_model = None
+    if args.tick_keypoint_ckpt is not None and args.tick_keypoint_ckpt.exists():
+        from muscle_arc.models.tick_keypoint import load_tick_keypoint_net
+
+        tick_kp_model = load_tick_keypoint_net(args.tick_keypoint_ckpt, device)
+        print(f"Loaded TickKeypointNet {args.tick_keypoint_ckpt}")
+
     test_paths = list_images(paths.test_images)
     groups = sequence_groups(test_paths)
     rows = []
@@ -363,12 +432,32 @@ def main() -> None:
             prov_mm = float(ocr_by_id[p.stem])
         elif do_live_depth:
             est = estimate_depth_scale(full)
-            if est.mm_per_pixel is not None and est.confidence >= 0.4:
-                live_scales[p.name] = float(est.mm_per_pixel)
-                live_scales[p.stem] = float(est.mm_per_pixel)
-                live_conf[p.name] = float(est.confidence)
-                live_conf[p.stem] = float(est.confidence)
-                prov_mm = float(est.mm_per_pixel)
+            jury_candidates = []
+            if est.mm_per_pixel is not None and est.confidence > 0:
+                jury_candidates.append(
+                    ScaleCandidate(est.source, float(est.mm_per_pixel), float(est.confidence))
+                )
+            if scale_det is not None:
+                try:
+                    mm_nn = float(predict_mm_per_pixel(scale_det, full, device))
+                    if 0.025 <= mm_nn <= 0.12:
+                        jury_candidates.append(ScaleCandidate("scale_det_cnn", mm_nn, 0.50))
+                except Exception as exc:  # noqa: BLE001
+                    print(f"scale_detector fail {p.name}: {exc}")
+            if tick_kp_model is not None:
+                try:
+                    mm_tk, conf_tk = _tick_keypoint_estimate(tick_kp_model, full, device)
+                    if mm_tk is not None:
+                        jury_candidates.append(ScaleCandidate("tick_keypoint", mm_tk, conf_tk))
+                except Exception as exc:  # noqa: BLE001
+                    print(f"tick_keypoint fail {p.name}: {exc}")
+            fused = confidence_weighted_vote(jury_candidates)
+            if fused.mm_per_pixel is not None and fused.confidence >= 0.4:
+                live_scales[p.name] = float(fused.mm_per_pixel)
+                live_scales[p.stem] = float(fused.mm_per_pixel)
+                live_conf[p.name] = float(fused.confidence)
+                live_conf[p.stem] = float(fused.confidence)
+                prov_mm = float(fused.mm_per_pixel)
         if prov_mm is None and scale_det is not None:
             try:
                 mm_nn = float(predict_mm_per_pixel(scale_det, full, device))
