@@ -52,6 +52,39 @@ Pipeline:
    `calibrate_predict.py` for non-metadata rows (`--residual-prefer blend|mm|scale`).
 5. Small residual gain correction on sample GT (clamped).
 
+### Tick-keypoint scale reader (RulerNet-style)
+
+Bottleneck analysis (`.cursor/rules/scale-and-gates.mdc`) shows the gap to top-10
+is dominated by mm/px error, not segmentation. `docs/research_scale_reader.md`
+designs and cites the fix: a keypoint-detection reformulation of tick-mark
+reading, following Pan et al., *RulerNet* (arXiv:2507.07077v2), rather than the
+older OCR/regression-only heuristics.
+
+- `src/muscle_arc/geometry/synth_ticks.py` — graphics-based synthetic tick
+  generator; stamps bright ticks at randomized known pitch onto real US border
+  strips (no manual labels needed, ground truth exact by construction).
+- `src/muscle_arc/models/tick_keypoint.py` — `TickKeypointNet`, a small 1D CNN
+  predicting a Gaussian-target heatmap over the border-strip profile; CE+DICE
+  loss (not raw L1/L2 — RulerNet's ablation shows L1/L2 heatmap regression
+  collapses to background on sparse targets). Tick centers are recovered via
+  local-maxima peaks, then `robust_median_pitch()` implements **RulerNet-Median**
+  (median of adjacent spacings with outlier rejection) — a deliberately reduced
+  scope vs. RulerNet's full GP/DeepGP, justified because device-rendered tick
+  marks have no perspective distortion to correct for (see design doc).
+  Trained via `scripts/train_tick_keypoint.py`, synthetic data only.
+- `src/muscle_arc/geometry/scale_fusion.py` — confidence-weighted jury vote
+  across every scale source (OCR+sector, duty-cycle ticks, OSF shape lookup,
+  `TickKeypointNet`, and the opt-in residual regressor). Falls back to the
+  single highest-confidence source when high-confidence candidates disagree
+  beyond a tolerance band, rather than blending a good read with a bad one.
+- Wired into `calibrate_predict.py` via optional `--tick-keypoint-ckpt` (off by
+  default) alongside the existing `--scale-detector`; feeds into the same
+  `live_scales`/`live_conf` dicts already consumed by `share_scales_in_groups()`
+  (5-frame video-sequence median consensus — unchanged, just gets a better
+  input).
+- `eval_osf_pipeline.py` also supports `--tick-keypoint-ckpt` for honest
+  before/after comparison on the OSF benchmark.
+
 ### External public data (challenge-allowed)
 
 - OSF node `xbawc` — Expert Analysed Benchmark Image Datasets
@@ -90,6 +123,10 @@ Test set includes 5-frame sequences. After per-frame prediction, optionally medi
 | `muscle_arc.data.dataset` | Image/mask datasets + augs |
 | `muscle_arc.models.segmentation` | Build SMP U-Net |
 | `muscle_arc.geometry.metrics` | MT / PA / FL from masks |
+| `muscle_arc.models.scale_detector` | Legacy CNN → `mm_per_pixel` (border strips / native crop) |
+| `muscle_arc.models.tick_keypoint` | RulerNet-style `TickKeypointNet` heatmap tick detector |
+| `muscle_arc.geometry.synth_ticks` | Synthetic tick-mark generator (training data for above) |
+| `muscle_arc.geometry.scale_fusion` | Confidence-weighted jury vote across scale sources |
 | `muscle_arc.train.loop` | Train/val loop + checkpoints |
 | `muscle_arc.infer.predict` | Masks → params → CSV |
 | `scripts/*` | CLI entrypoints |
