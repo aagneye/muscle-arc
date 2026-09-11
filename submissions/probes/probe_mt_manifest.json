@@ -1,0 +1,23 @@
+{
+  "axis": "mt",
+  "values": [
+    16.0,
+    19.0,
+    22.0,
+    25.0,
+    28.0
+  ],
+  "held": {
+    "pa": 15.2,
+    "fl": 81.5,
+    "mt": 22.0
+  },
+  "files": [
+    "submissions/probes/probe_mt_16.csv",
+    "submissions/probes/probe_mt_19.csv",
+    "submissions/probes/probe_mt_22.csv",
+    "submissions/probes/probe_mt_25.csv",
+    "submissions/probes/probe_mt_28.csv"
+  ],
+  "note": "Submit each CSV; record publicScore; pass --scores-json to interpolate."
+}

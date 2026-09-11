@@ -43,6 +43,53 @@ def read_mask(path: Path) -> np.ndarray:
     return (mask > 0).astype(np.uint8)
 
 
+def letterbox(
+    image: np.ndarray,
+    size: int,
+    is_mask: bool = False,
+) -> tuple[np.ndarray, dict[str, float | int]]:
+    """Aspect-preserving resize into a square canvas (pad with zeros).
+
+    Returns (canvas, meta) where meta has scale, pad_left, pad_top, new_h, new_w
+    needed to map predictions back to the original resolution.
+    """
+    h, w = image.shape[:2]
+    scale = float(size) / float(max(h, w))
+    new_w = max(1, int(round(w * scale)))
+    new_h = max(1, int(round(h * scale)))
+    interp = cv2.INTER_NEAREST if is_mask else cv2.INTER_AREA
+    resized = cv2.resize(image, (new_w, new_h), interpolation=interp)
+    canvas = np.zeros((size, size), dtype=image.dtype)
+    pad_top = (size - new_h) // 2
+    pad_left = (size - new_w) // 2
+    canvas[pad_top : pad_top + new_h, pad_left : pad_left + new_w] = resized
+    meta = {
+        "scale": scale,
+        "pad_left": int(pad_left),
+        "pad_top": int(pad_top),
+        "new_h": int(new_h),
+        "new_w": int(new_w),
+        "orig_h": int(h),
+        "orig_w": int(w),
+    }
+    return canvas, meta
+
+
+def unletterbox(
+    pred: np.ndarray,
+    meta: dict[str, float | int],
+) -> np.ndarray:
+    """Crop letterbox padding and resize prediction back to original HxW."""
+    pad_left = int(meta["pad_left"])
+    pad_top = int(meta["pad_top"])
+    new_h = int(meta["new_h"])
+    new_w = int(meta["new_w"])
+    orig_h = int(meta["orig_h"])
+    orig_w = int(meta["orig_w"])
+    crop = pred[pad_top : pad_top + new_h, pad_left : pad_left + new_w]
+    return cv2.resize(crop, (orig_w, orig_h), interpolation=cv2.INTER_LINEAR)
+
+
 class UltrasoundSegDataset(Dataset):
     """Paired ultrasound image + binary mask dataset."""
 
@@ -51,10 +98,12 @@ class UltrasoundSegDataset(Dataset):
         pairs: list[tuple[Path, Path]],
         img_size: int = 512,
         transform: Callable | None = None,
+        letterbox_resize: bool = True,
     ) -> None:
         self.pairs = pairs
         self.img_size = img_size
         self.transform = transform
+        self.letterbox_resize = letterbox_resize
 
     def __len__(self) -> int:
         return len(self.pairs)
@@ -64,8 +113,31 @@ class UltrasoundSegDataset(Dataset):
         image = read_gray(img_path)
         mask = read_mask(mask_path)
 
-        image = cv2.resize(image, (self.img_size, self.img_size), interpolation=cv2.INTER_AREA)
-        mask = cv2.resize(mask, (self.img_size, self.img_size), interpolation=cv2.INTER_NEAREST)
+        if self.letterbox_resize:
+            # Align mask FOV to image native size first (host masks often differ
+            # in HxW/aspect from training images). Then letterbox both together.
+            if mask.shape[:2] != image.shape[:2]:
+                mask = cv2.resize(
+                    mask,
+                    (image.shape[1], image.shape[0]),
+                    interpolation=cv2.INTER_NEAREST,
+                )
+            assert mask.shape[:2] == image.shape[:2], (
+                f"mask/image shape mismatch after align: {mask.shape} vs {image.shape}"
+            )
+            image, meta = letterbox(image, self.img_size, is_mask=False)
+            mask, _ = letterbox(mask, self.img_size, is_mask=True)
+            # Same canvas geometry
+            assert image.shape[:2] == mask.shape[:2]
+        else:
+            if mask.shape[:2] != image.shape[:2]:
+                mask = cv2.resize(
+                    mask,
+                    (image.shape[1], image.shape[0]),
+                    interpolation=cv2.INTER_NEAREST,
+                )
+            image = cv2.resize(image, (self.img_size, self.img_size), interpolation=cv2.INTER_AREA)
+            mask = cv2.resize(mask, (self.img_size, self.img_size), interpolation=cv2.INTER_NEAREST)
 
         if self.transform is not None:
             out = self.transform(image=image, mask=mask)

@@ -1,0 +1,14 @@
+unpack benchmark_dataset_architecture_GM_dynamic_v0.1.0.zip
+unpack benchmark_dataset_architecture_v0.1.0.zip
+unpack benchmark_dataset_csa_RF_v0.1.0.zip
+Wrote experiments/osf_expert_gt.csv rows=35
+          pa_deg      fl_mm      mt_mm  mm_per_pixel
+count  35.000000  35.000000  35.000000     35.000000
+mean   18.291171  60.680364  17.772012      0.116247
+std     3.645441  10.241822   3.169785      0.018411
+min    12.860667  35.688312  12.077922      0.079365
+25%    15.685500  54.968182  15.146608      0.112360
+50%    17.200000  60.275437  17.735618      0.129870
+75%    20.119500  68.285916  20.100823      0.129870
+max    27.500000  84.435495  24.379775      0.135135
+scales: [0.07937, 0.08929, 0.10638, 0.11236, 0.11765, 0.12987, 0.13514]

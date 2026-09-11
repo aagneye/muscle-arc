@@ -1,0 +1,116 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+[ WARN:0@5.485] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@5.485] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@6.343] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@6.343] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@6.865] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@6.865] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@7.318] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@7.318] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@8.439] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@8.439] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@8.916] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@8.916] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.865] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.865] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@10.446] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@10.446] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@11.792] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@11.792] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@13.509] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@13.509] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@14.253] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@14.253] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@15.236] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@15.236] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@15.694] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@15.694] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@16.185] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@16.185] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@17.781] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@17.781] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@18.369] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@18.369] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@19.898] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@19.899] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@20.353] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@20.353] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@23.149] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@23.149] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@24.347] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@24.347] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@25.494] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@25.494] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@25.944] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@25.944] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@27.265] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@27.265] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@27.756] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@27.756] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@28.213] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@28.213] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+{
+  "n": 32,
+  "pa_mae": 3.2553701912531223,
+  "fl_mae": 19.946329886077287,
+  "mt_mae": 5.941687909467392,
+  "umud": 1.3951061640681417,
+  "combo": 1.3951061640681417,
+  "n_est_scale": 33,
+  "n_gt_scale": 0,
+  "n_rows": 35,
+  "scale_mode": "pred",
+  "masks_from": "ours",
+  "n_mt_ok": 6,
+  "n_mt_bad": 26,
+  "n_fl_ok": 6,
+  "n_fl_bad": 24,
+  "n_pa_ok": 25,
+  "n_pa_bad": 7,
+  "mt_ratio_median": 0.7117285237790048,
+  "fl_ratio_median": 0.7411635539328694,
+  "gate2_ok": false,
+  "gate0_ok": false
+}
+
+per-image ratios (mt_ratio | fl_ratio | pa_err):
+  BAD im_01_arch.tif: mt=0.54 fl=0.87 pa_err=14.70
+  BAD im_02_arch.tif: mt=0.71 fl=0.86 pa_err=0.28
+  BAD im_03_arch.tif: mt=0.57 fl=0.59 pa_err=0.25
+  BAD im_04_arch.tif: mt=1.20 fl=1.56 pa_err=6.27
+  BAD im_05_arch.tif: mt=0.52 fl=0.52 pa_err=4.54
+  BAD im_06_arch.tif: mt=0.66 fl=0.45 pa_err=6.30
+  BAD im_07_arch.tif: mt=1.81 fl=nan pa_err=0.46
+  BAD im_08_arch.tif: mt=0.51 fl=0.60 pa_err=4.16
+  OK im_09_arch.tif: mt=0.98 fl=1.07 pa_err=5.09
+  OK im_10_arch.tif: mt=1.01 fl=1.08 pa_err=2.26
+  BAD im_11_arch.tif: mt=0.53 fl=0.54 pa_err=1.77
+  BAD im_12_arch.tif: mt=0.86 fl=0.56 pa_err=3.41
+  BAD im_13_arch.tif: mt=0.59 fl=0.74 pa_err=0.35
+  BAD im_14_arch.tif: mt=0.53 fl=0.60 pa_err=1.32
+  OK im_15_arch.tif: mt=0.90 fl=0.80 pa_err=2.50
+  BAD im_16_arch.tif: mt=0.53 fl=0.52 pa_err=0.96
+  BAD im_17_arch.tif: mt=0.53 fl=0.50 pa_err=1.94
+  OK im_18_arch.tif: mt=1.06 fl=0.93 pa_err=5.09
+  OK im_19_arch.tif: mt=0.95 fl=1.03 pa_err=0.92
+  BAD im_20_arch.tif: mt=0.77 fl=0.89 pa_err=0.89
+  BAD im_21_arch.tif: mt=0.53 fl=nan pa_err=9.69
+  BAD im_22_arch.tif: mt=nan fl=nan pa_err=nan
+  BAD im_23_arch.tif: mt=1.27 fl=0.90 pa_err=4.44
+  BAD im_24_arch.tif: mt=1.36 fl=1.39 pa_err=0.29
+  BAD im_25_arch.tif: mt=nan fl=nan pa_err=nan
+  BAD im_26_arch.tif: mt=nan fl=nan pa_err=nan
+  BAD im_27_arch.tif: mt=0.71 fl=0.71 pa_err=2.39
+  BAD im_28_arch.tif: mt=1.13 fl=1.00 pa_err=0.79
+  BAD im_29_arch.tif: mt=0.52 fl=0.51 pa_err=2.48
+  BAD im_30_arch.tif: mt=0.74 fl=0.80 pa_err=2.63
+  OK im_31_arch.tif: mt=0.99 fl=0.53 pa_err=6.68
+  BAD im_32_arch.tif: mt=2.34 fl=2.03 pa_err=4.09
+  BAD im_33_arch.tif: mt=0.67 fl=0.65 pa_err=0.69
+  BAD im_34_arch.tif: mt=0.65 fl=0.74 pa_err=5.00
+  BAD im_35_arch.tif: mt=0.53 fl=0.48 pa_err=1.56
+Wrote experiments/gate2b_osf_pred_scale.json
+mt_bad=26/32 fl_bad=24/32 pa_bad=7
+GATE2_FAIL

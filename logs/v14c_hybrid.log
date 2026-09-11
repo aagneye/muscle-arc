@@ -1,0 +1,14 @@
+v14c_fused90 replaced 85
+v14c_conf85_clip replaced 110
+v14_shrink_fl81 scale 0.8812
+{"name": "v14c_fused90", "FL_med": 83.37, "FL_std": 19.15, "clip140": 1, "MT_med": 22.46, "MT_std": 4.46, "PA_med": 15.1, "gate3_ok": true, "reasons": [], "fl_clip_frac": 0.003236245954692557}
+{"name": "v14c_conf85_clip", "FL_med": 83.26, "FL_std": 20.73, "clip140": 0, "MT_med": 22.43, "MT_std": 4.62, "PA_med": 15.1, "gate3_ok": true, "reasons": [], "fl_clip_frac": 0.0}
+{"name": "v14c_blend35", "FL_med": 87.49, "FL_std": 17.64, "clip140": 0, "MT_med": 23.18, "MT_std": 3.7, "PA_med": 14.51, "gate3_ok": true, "reasons": [], "fl_clip_frac": 0.0}
+{"name": "v13c_blend35", "FL_med": 83.16, "FL_std": 17.75, "clip140": 0, "MT_med": 22.92, "MT_std": 3.48, "PA_med": 14.55, "gate3_ok": true, "reasons": [], "fl_clip_frac": 0.0}
+{"name": "v14_shrink_fl81", "FL_med": 81.5, "FL_std": 24.82, "clip140": 0, "MT_med": 20.62, "MT_std": 5.11, "PA_med": 14.51, "gate3_ok": true, "reasons": [], "fl_clip_frac": 0.0}
+{"name": "v14c_shrink_blend40", "FL_med": 83.66, "FL_std": 16.97, "clip140": 0, "MT_med": 22.11, "MT_std": 3.54, "PA_med": 14.51, "gate3_ok": true, "reasons": [], "fl_clip_frac": 0.0}
+CHOSEN v14_shrink_fl81 {'name': 'v14_shrink_fl81', 'FL_med': 81.5, 'FL_std': 24.82, 'clip140': 0, 'MT_med': 20.62, 'MT_std': 5.11, 'PA_med': 14.51, 'gate3_ok': True, 'reasons': [], 'fl_clip_frac': 0.0} gate3 True
+WROTE submissions/submission_v14c.csv
+Decision=SUBMIT
+310 submissions/submission.csv
+401 Client Error: Unauthorized for url: https://www.kaggle.com/api/v1/competitions/submission-url

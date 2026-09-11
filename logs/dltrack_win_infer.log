@@ -1,0 +1,52 @@
+DL_Track apo=data/external/dl_track/v0.3.1/models_v0.3.0/model-apo-VGG16_DiceBCE_512_300.h5
+DL_Track fasc=data/external/dl_track/v0.3.1/models_v0.3.0/model-fasc-VGG16_DiceBCE_200_512.h5
+2026-09-09 17:22:33.319015: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2026-09-09 17:22:33.444252: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:22:33.444290: I tensorflow/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+2026-09-09 17:22:33.480082: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-09-09 17:22:34.372220: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:22:34.372327: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:22:34.372339: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
+2026-09-09 17:22:34.965562: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:22:34.965671: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublas.so.11'; dlerror: libcublas.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:22:34.965754: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublasLt.so.11'; dlerror: libcublasLt.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:22:34.965832: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcufft.so.10'; dlerror: libcufft.so.10: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:22:34.965917: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcusparse.so.11'; dlerror: libcusparse.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:22:34.965989: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:22:34.966001: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+Skipping registering GPU devices...
+2026-09-09 17:22:34.966236: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Loaded DL_Track from data/external/dl_track
+Geometry mode: ours
+Thresholds apo=0.350 fasc=0.100
+Usable metadata scale keys: 0
+Depth-scale table keys: 414
+OSF shape cache warmed: 6 shapes
+OCR/tick scales after live+group: 600 keys (live=56, crop_applied=241)
+OSF shape lookup entries: 1
+GT IMG_00001.tif (wider_hL_dark): pa=17.334 fl=79.423 mt=21.778 | pred pa=18.33 fl_px=1127.1 mt_px=354.1
+GT IMG_00002.tif (wider_hL_dark): pa=12.876 fl=69.424 mt=15.478 | pred pa=8.90 fl_px=1477.5 mt_px=274.6
+Scale assignment: {'n_meta': 0, 'n_ocr': 300, 'n_cluster': 0, 'n_prefix': 0, 'n_shape': 0, 'n_primary': 9, 'primary_mt': 0.05893240781302418, 'primary_fl': 0.05872530294216714, 'clusters': ['wider_hL_dark']}
+Official geometry mm rows: 0/309
+Residual models skipped (off or missing)
+Sample residual gains disabled (n_ocr=300)
+Temporal PA-only EMA over 18 groups (OCR scales preserved)
+Wrote submissions/submission_dltrack_win.csv (309 rows)
+           pa_deg       fl_mm       mt_mm
+count  309.000000  309.000000  309.000000
+mean    14.065981   84.298498   21.387918
+std      2.823271   26.090569    5.750731
+min      6.074052   25.000000    6.000000
+25%     12.385046   67.028198   18.141507
+50%     13.814531   82.737596   20.733476
+75%     15.170866  100.537853   25.436938
+max     23.122836  140.000000   45.000000
+geom_stats fasc_comp=16172 hough=12 radon=308 pa_apo=308 pa_nan=1 fl_x=303 fl_trig=263 fl_nan=2 mt_ok=308 mt_nan=1
+clip hits pa_deg: low=0 high=0
+clip hits fl_mm: low=2 high=14
+clip hits mt_mm: low=2 high=2
+Wrote debug submissions/submission_dltrack_win_debug.csv
+GATE_B IMG_00001.tif: PA_err=1.49 FL_err=3.80 MT_err=4.37
+GATE_B IMG_00002.tif: PA_err=0.02 FL_err=27.61 MT_err=2.56

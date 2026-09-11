@@ -1,0 +1,26 @@
+DL_Track apo=data/external/dl_track/v0.3.1/models_v0.3.0/model-apo-VGG16_DiceBCE_512_300.h5
+DL_Track fasc=data/external/dl_track/v0.3.1/models_v0.3.0/model-fasc-VGG16_DiceBCE_200_512.h5
+2026-09-09 18:03:34.792640: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2026-09-09 18:03:34.920897: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 18:03:34.920947: I tensorflow/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+2026-09-09 18:03:34.956798: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-09-09 18:03:35.691467: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 18:03:35.691568: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 18:03:35.691577: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
+2026-09-09 18:03:36.986114: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 18:03:36.986256: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublas.so.11'; dlerror: libcublas.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 18:03:36.986323: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublasLt.so.11'; dlerror: libcublasLt.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 18:03:36.986387: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcufft.so.10'; dlerror: libcufft.so.10: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 18:03:36.986460: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcusparse.so.11'; dlerror: libcusparse.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 18:03:36.986523: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 18:03:36.986535: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+Skipping registering GPU devices...
+2026-09-09 18:03:36.986966: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Traceback (most recent call last):
+  File "/home/azureuser/muscle-arc/scripts/debug_apo_pair_overlays.py", line 79, in <module>
+    main()
+  File "/home/azureuser/muscle-arc/scripts/debug_apo_pair_overlays.py", line 54, in main
+    (y0a, y1a), (y0b, y1b) = bands
+ValueError: too many values to unpack (expected 2)

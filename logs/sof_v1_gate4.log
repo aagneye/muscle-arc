@@ -1,0 +1,13 @@
+{
+  "folds": [
+    {
+      "fold": "im",
+      "n": 35,
+      "umud": NaN
+    }
+  ],
+  "umud_mean": NaN,
+  "umud_std": NaN,
+  "gate4_lodo_ok": false
+}
+GATE4_LODO_FAIL

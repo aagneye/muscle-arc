@@ -1,0 +1,50 @@
+=== geometry validator ===
+[ WARN:0@43.821] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@43.821] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@60.981] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@60.981] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@65.405] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@65.405] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@67.446] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@67.447] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+Geometry-only on GT fasc masks (n=100)
+GT PA: n=100 mean=15.56 median=14.75 [9.4, 23.6]
+GT FL_px finite=100/100 median=121.8 p90=1107.1
+GT MT_px finite=41/100 median=302.2
+FL vs MT/sin(PA) relative: n=41 mean=10.212% median=8.340% p90=25.085%
+
+Matched apo+fasc stems: 1048
+Traceback (most recent call last):
+  File "/home/azureuser/muscle-arc/scripts/eval_geometry.py", line 175, in <module>
+    main()
+  File "/home/azureuser/muscle-arc/scripts/eval_geometry.py", line 154, in main
+    pa, fl, mt = _geom(apo, fasc, gray=gray)
+  File "/home/azureuser/muscle-arc/scripts/eval_geometry.py", line 37, in _geom
+    pa = pennation_angle_deg(fasc, apo, gray=gray)
+  File "/home/azureuser/muscle-arc/src/muscle_arc/geometry/metrics.py", line 282, in pennation_angle_deg
+    comps = _fascicle_lines(fasc_mask, fasc_prob=fasc_prob, gray=gray, apo_mask=apo_mask)
+  File "/home/azureuser/muscle-arc/src/muscle_arc/geometry/metrics.py", line 257, in _fascicle_lines
+    return _hough_fasc_components(gray, apo_mask)
+  File "/home/azureuser/muscle-arc/src/muscle_arc/geometry/metrics.py", line 225, in _hough_fasc_components
+    for x1, y1, x2, y2 in lines[:, 0]:
+TypeError: cannot unpack non-iterable numpy.int32 object
+=== constant probes ===
+Wrote submissions/probe_a.csv (309 rows) pa=13.0 fl=75.0 mt=19.0
+Wrote submissions/probe_b.csv (309 rows) pa=15.0 fl=75.0 mt=19.0
+Wrote submissions/probe_c.csv (309 rows) pa=13.0 fl=70.0 mt=19.0
+=== inference v6 (fixed geometry + cluster scale) ===
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+Traceback (most recent call last):
+  File "/home/azureuser/muscle-arc/scripts/calibrate_predict.py", line 220, in <module>
+    main()
+  File "/home/azureuser/muscle-arc/scripts/calibrate_predict.py", line 97, in main
+    pa = pennation_angle_deg(fasc, apo, fasc_prob=fasc_prob, gray=gray)
+  File "/home/azureuser/muscle-arc/src/muscle_arc/geometry/metrics.py", line 282, in pennation_angle_deg
+    comps = _fascicle_lines(fasc_mask, fasc_prob=fasc_prob, gray=gray, apo_mask=apo_mask)
+  File "/home/azureuser/muscle-arc/src/muscle_arc/geometry/metrics.py", line 257, in _fascicle_lines
+    return _hough_fasc_components(gray, apo_mask)
+  File "/home/azureuser/muscle-arc/src/muscle_arc/geometry/metrics.py", line 225, in _hough_fasc_components
+    for x1, y1, x2, y2 in lines[:, 0]:
+TypeError: cannot unpack non-iterable numpy.int32 object

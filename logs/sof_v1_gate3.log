@@ -1,0 +1,19 @@
+{
+  "fl_std_cand": 27.25131382233519,
+  "fl_std_ref": 13.811455718819026,
+  "mt_std_cand": 7.680691766821054,
+  "mt_std_ref": 3.207089129930254,
+  "fl_clip_frac": 0.05501618122977346,
+  "mt_clip_frac": 0.04854368932038835,
+  "fl_med": 90.31638284541408,
+  "mt_med": 24.55362743480764,
+  "ok": false,
+  "reasons": [
+    "fl_clip_high"
+  ],
+  "fl_med_near_81": true,
+  "gate3_ok": false,
+  "gate3_warn_fl_med": false,
+  "gate4_ok": false
+}
+GATE3_FAIL

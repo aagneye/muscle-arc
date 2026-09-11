@@ -1,0 +1,2 @@
+apo: wrote experiments/splits/apo_splits.json train=728 val=160 holdout=160 groups=210
+fasc: wrote experiments/splits/fasc_splits.json train=1935 val=415 holdout=411 groups=553

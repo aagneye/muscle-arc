@@ -1,0 +1,33 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+GT IMG_00001.tif (800x1200): pa=17.334 fl=79.423 mt=21.778 | pred pa=18.77 fl_px=1202.9 mt_px=376.4
+GT IMG_00002.tif (800x1200): pa=12.876 fl=69.424 mt=15.478 | pred pa=13.23 fl_px=1391.2 mt_px=298.1
+Scales by shape:
+  512x465: n=2 mt_scale=0.05489 fl_scale=0.05796
+  513x461: n=1 mt_scale=0.05489 fl_scale=0.05796
+  513x463: n=1 mt_scale=0.05489 fl_scale=0.05796
+  513x464: n=1 mt_scale=0.05489 fl_scale=0.05796
+  513x465: n=2 mt_scale=0.05489 fl_scale=0.05796
+  513x466: n=1 mt_scale=0.05489 fl_scale=0.05796
+  644x1088: n=50 mt_scale=0.05489 fl_scale=0.05796
+  800x1200: n=239 mt_scale=0.05489 fl_scale=0.05796
+  853x1069: n=11 mt_scale=0.05489 fl_scale=0.05796
+  853x959: n=1 mt_scale=0.05489 fl_scale=0.05796
+Temporal median-smooth over 18 shape-contiguous groups
+Wrote submissions/submission_v8.csv (309 rows)
+           pa_deg       fl_mm       mt_mm
+count  309.000000  309.000000  309.000000
+mean    14.743944   76.636936   20.293302
+std      2.376018   13.811456    3.207089
+min     10.739716   25.000000    7.360890
+25%     12.078336   70.540296   19.096656
+50%     16.033205   70.540296   19.096656
+75%     16.033205   85.875670   20.231636
+max     21.633965  122.493824   40.864943
+geom_stats fasc_comp=5568 hough=94 radon=309 pa_apo=309 pa_nan=0 fl_x=253 fl_trig=55 fl_nan=1 mt_ok=309 mt_nan=0
+clip hits pa_deg: low=0 high=0
+clip hits fl_mm: low=1 high=0
+clip hits mt_mm: low=0 high=0
+GATE_B IMG_00001.tif: |PA_err|=2.29 (pred=15.05 gt=17.33)
+GATE_B IMG_00002.tif: |PA_err|=2.17 (pred=15.05 gt=12.88)

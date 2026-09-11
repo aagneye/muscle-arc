@@ -1,0 +1,18 @@
+-rw-rw-r-- 1 azureuser azureuser 20370 Sep  8 18:01 submissions/submission_dltrack_g0.csv
+-rw-rw-r-- 1 azureuser azureuser 48905 Sep  8 18:01 submissions/submission_dltrack_g0_debug.csv
+           pa_deg       fl_mm       mt_mm
+count  309.000000  309.000000  309.000000
+mean    13.568952   82.982501   18.987485
+std      3.155514   24.754133    4.397681
+min      6.341130   25.000000    6.000000
+25%     11.803747   67.446038   17.329027
+50%     13.097900   85.536778   19.952662
+75%     14.590696   99.027876   20.506822
+max     38.809141  140.000000   35.298148
+n 309
+debug cols ['image_id', 'kind', 'crop_applied', 'cluster', 'h', 'w', 'n_fasc_comp', 'apo_px', 'fasc_px', 'fl_px', 'mt_px', 'scale_source', 'pa_deg', 'fl_mm', 'mt_mm']
+310 submissions/submission.csv
+  0%|          | 0.00/19.9k [00:00<?, ?B/s]100%|██████████| 19.9k/19.9k [00:00<00:00, 59.3kB/s]
+Successfully submitted to UMUD Challenge: Muscle Architecture in Ultrasound Data2026-09-08T18:02:45.253Z 0.96424 complete dltrack-g0-geom-fixed
+2026-09-08T14:55:49.57Z 0.85193 complete sof_v1c-SOF-masks-blend-v14c-Gate3
+2026-09-08T07:06:28.237Z 0.89144 complete v14c-scale-climb-hybrid-Gate3

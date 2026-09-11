@@ -1,0 +1,25 @@
+Scanning data/raw/test_images_v2: 309 images
+
+Wrote experiments/depth_scale_table.csv rows=309 with_scale=283 (91.6%)
+count    283.000000
+mean       0.090614
+std        0.046314
+min        0.022221
+25%        0.065675
+50%        0.070313
+75%        0.104070
+max        0.209120
+sources:
+ source
+ticks_5mm      143
+ocr+sector      90
+ticks_2.5mm     41
+ticks_10mm       9
+kinds:
+ kind
+console    250
+cropped     59
+crop_applied=250/309
+
+DECISION depth_scale_ok=283/309
+DEPTH_SCALE_OK — prefer per-image OCR/ticks for submit gate

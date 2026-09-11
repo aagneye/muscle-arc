@@ -1,0 +1,7 @@
+DL_TRACK_OK n_h5=6 (skip download)
+  data/external/dl_track/v0.3.1/models_v0.3.0/model-apo-VGG16_DiceBCE_512_300.h5
+  data/external/dl_track/v0.3.1/models_v0.3.0/model-fasc-IFSS_1Encoder_3d_a08_g2_noaug_nocrop_HL.h5
+  data/external/dl_track/v0.3.1/models_v0.3.0/model-fasc-VGG16_DiceBCE_200_512.h5
+  data/external/dl_track/v0.3.0/DL_Track_US_models/model-apo-VGG16_DiceBCE_512_300.h5
+  data/external/dl_track/v0.3.0/DL_Track_US_models/model-fasc-IFSS_1Encoder_3d_a08_g2_noaug_nocrop_HL.h5
+  data/external/dl_track/v0.3.0/DL_Track_US_models/model-fasc-VGG16_DiceBCE_200_512.h5

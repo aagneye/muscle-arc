@@ -1,0 +1,22 @@
+Scanning data/raw/test_images_v2: 309 images
+Scanning data/raw/apo_imgs_v1: 1048 images
+Scanning data/raw/fasc_imgs_v1: 2761 images
+
+Wrote experiments/scale_table.csv rows=4118 with_scale=247 (6.0%)
+count    2.470000e+02
+mean     3.527778e-01
+std      5.562386e-17
+min      3.527778e-01
+25%      3.527778e-01
+50%      3.527778e-01
+75%      3.527778e-01
+max      3.527778e-01
+sources:
+ source
+tiff_resunit_2    247
+  apo_imgs_v1: 128/1048 scaled
+  fasc_imgs_v1: 107/2761 scaled
+  test_images_v2: 12/309 scaled
+
+DECISION test_with_scale=12/309
+PARTIAL_METADATA_SCALE — hybrid metadata + cluster fallback

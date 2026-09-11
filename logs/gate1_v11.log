@@ -1,0 +1,22 @@
+Gate1 matched stems: 160 / 1048
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+{
+  "n": 160,
+  "gt_pa_median": 14.865081442868188,
+  "gt_fl_px_median": 1255.575627779489,
+  "gt_mt_px_median": 310.49062462548096,
+  "mode": "gt_vs_pred",
+  "pa_mae_deg": 7.5919916892656065,
+  "fl_rel_mae": 1.1877478784905882,
+  "mt_rel_mae": 0.8489073594812789,
+  "n_pa": 159,
+  "n_fl": 159,
+  "n_mt": 159,
+  "geom_ok": false,
+  "route": "geometry_first"
+}
+geom_stats fasc_comp=10084 hough=38 radon=319 pa_apo=319 pa_nan=1 fl_x=348 fl_trig=319 fl_nan=1 mt_ok=319 mt_nan=1
+Wrote experiments/gate1_geometry.json
+GATE1_ROUTE geometry_first

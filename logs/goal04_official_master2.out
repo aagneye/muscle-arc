@@ -1,0 +1,479 @@
+2026-09-09 07:37:28.763363: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2026-09-09 07:37:28.879781: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 07:37:28.879829: I tensorflow/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+2026-09-09 07:37:28.915309: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-09-09 07:37:29.443666: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 07:37:29.443763: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 07:37:29.443771: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
+cv2 4.11.0 numpy 1.26.4 tf 2.10.0
+2026-09-09 07:37:32.760234: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2026-09-09 07:37:32.895369: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 07:37:32.895405: I tensorflow/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+2026-09-09 07:37:32.930032: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-09-09 07:37:33.581483: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 07:37:33.581578: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 07:37:33.581590: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
+DL_Track apo=data/external/dl_track/v0.3.1/models_v0.3.0/model-apo-VGG16_DiceBCE_512_300.h5
+DL_Track fasc=data/external/dl_track/v0.3.1/models_v0.3.0/model-fasc-VGG16_DiceBCE_200_512.h5
+2026-09-09 07:37:37.140553: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 07:37:37.140724: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublas.so.11'; dlerror: libcublas.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 07:37:37.140828: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublasLt.so.11'; dlerror: libcublasLt.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 07:37:37.140929: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcufft.so.10'; dlerror: libcufft.so.10: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 07:37:37.141039: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcusparse.so.11'; dlerror: libcusparse.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 07:37:37.141141: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 07:37:37.141160: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+Skipping registering GPU devices...
+2026-09-09 07:37:37.141788: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 752ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 663ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00001.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 536ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 530ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00002.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 515ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 539ms/step
+fail IMG_00003.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 515ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 536ms/step
+fail IMG_00004.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 531ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 520ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00005.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 529ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 531ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:546: RankWarning: Polyfit may be poorly conditioned
+  z = np.polyfit(np.array(x), np.array(y), 1)
+fail IMG_00006.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 524ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 521ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00007.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 529ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 503ms/step
+fail IMG_00008.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 516ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 522ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00009.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 517ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 0s 499ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00010.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 502ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 525ms/step
+fail IMG_00011.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 515ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 0s 499ms/step
+fail IMG_00012.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 528ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 517ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00013.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 542ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 534ms/step
+fail IMG_00014.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 525ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 524ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00015.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 539ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 527ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00016.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 541ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 525ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00017.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 532ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 520ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00018.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 533ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 525ms/step
+fail IMG_00019.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 535ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 528ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00020.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 550ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 528ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:527: RuntimeWarning: More than 20 figures have been opened. Figures created through the pyplot interface (`matplotlib.pyplot.figure`) are retained until explicitly closed and may consume too much memory. (To control this warning, see the rcParam `figure.max_open_warning`). Consider using `matplotlib.pyplot.close()`.
+  fig, ax = plt.subplots(figsize=(10, 6))  # Adjust figure size for better clarity
+fail IMG_00021.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 521ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 546ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00022.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 543ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 535ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00023.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 526ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 525ms/step
+fail IMG_00024.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 532ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 527ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00025.tif: unsupported operand type(s) for /: 'list' and 'float'
+25/309
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 523ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 530ms/step
+fail IMG_00026.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 511ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 509ms/step
+fail IMG_00027.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 549ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 528ms/step
+fail IMG_00028.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 526ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 531ms/step
+fail IMG_00029.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 512ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 523ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00030.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 541ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 534ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00031.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 539ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 542ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00032.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 530ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 546ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:546: RankWarning: Polyfit may be poorly conditioned
+  z = np.polyfit(np.array(x), np.array(y), 1)
+fail IMG_00033.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 520ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 622ms/step
+fail IMG_00034.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 582ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 577ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00035.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 544ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 573ms/step
+fail IMG_00036.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 554ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 565ms/step
+fail IMG_00037.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 551ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 540ms/step
+fail IMG_00038.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 551ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 557ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00039.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 520ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 537ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 558ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 599ms/step
+fail IMG_00041.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 649ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 532ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 549ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 554ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 555ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 643ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 636ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 538ms/step
+fail IMG_00045.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 555ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 514ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 548ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 567ms/step
+fail IMG_00047.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 546ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 535ms/step
+fail IMG_00048.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 523ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 524ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00049.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 558ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 555ms/step
+fail IMG_00050.tif: unsupported operand type(s) for /: 'list' and 'float'
+50/309
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 523ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 533ms/step
+fail IMG_00051.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 541ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 530ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00052.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 527ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 535ms/step
+fail IMG_00053.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 529ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 525ms/step
+fail IMG_00054.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 569ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 508ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00055.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 553ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 508ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00056.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 533ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 511ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00057.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 533ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 517ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00058.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 556ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 519ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00059.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 545ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 522ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00060.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 551ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 530ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00061.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 552ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 536ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00062.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 553ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 542ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00063.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 558ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 515ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00064.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 548ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 522ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00065.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 543ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 543ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00066.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 532ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 515ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00067.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 540ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 539ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:546: RankWarning: Polyfit may be poorly conditioned
+  z = np.polyfit(np.array(x), np.array(y), 1)
+fail IMG_00068.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 555ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 526ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00069.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 548ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 509ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00070.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 540ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 510ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00071.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 521ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 527ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00072.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 522ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 551ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00073.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 547ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 508ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00074.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 551ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 526ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00075.tif: unsupported operand type(s) for /: 'list' and 'float'
+75/309
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 521ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 516ms/step
+fail IMG_00076.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 531ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 531ms/step
+fail IMG_00077.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 518ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 539ms/step
+fail IMG_00078.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 519ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 525ms/step
+fail IMG_00079.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 577ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 555ms/step
+fail IMG_00080.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 551ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 543ms/step
+fail IMG_00081.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 543ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 529ms/step
+fail IMG_00082.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 539ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 532ms/step
+fail IMG_00083.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 530ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 543ms/step
+fail IMG_00084.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 547ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 525ms/step
+fail IMG_00085.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 547ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 530ms/step
+fail IMG_00086.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 535ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 553ms/step
+fail IMG_00087.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 562ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 529ms/step
+fail IMG_00088.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 535ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 532ms/step
+fail IMG_00089.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 537ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 545ms/step
+fail IMG_00090.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 545ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 536ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00091.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 553ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 523ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:546: RankWarning: Polyfit may be poorly conditioned
+  z = np.polyfit(np.array(x), np.array(y), 1)
+fail IMG_00092.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 528ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 539ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00093.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 547ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 538ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00094.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 512ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 543ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00095.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 527ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 531ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00096.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 523ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 568ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00097.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 573ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 513ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00098.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 541ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 541ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00099.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 528ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 531ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00100.tif: unsupported operand type(s) for /: 'list' and 'float'
+100/309
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 545ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 552ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00101.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 522ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 520ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00102.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 543ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 525ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00103.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 534ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 540ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00104.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 539ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 521ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00105.tif: unsupported operand type(s) for /: 'list' and 'float'
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 523ms/step
+1/1 [==============================] - ETA: 0s1/1 [==============================] - 1s 562ms/step
+/home/azureuser/muscle-arc/src/muscle_arc/models/dl_track_official/do_calculations.py:625: FutureWarning: The behavior of DataFrame concatenation with empty or all-NA entries is deprecated. In a future version, this will no longer exclude empty or all-NA columns when determining the result dtypes. To retain the old behavior, exclude the relevant entries before the concat operation.
+  fascicle_data = pd.concat(
+fail IMG_00106.tif: unsupported operand type(s) for /: 'list' and 'float'
+Terminated

@@ -1,0 +1,126 @@
+DL_Track apo=data/external/dl_track/v0.3.1/models_v0.3.0/model-apo-VGG16_DiceBCE_512_300.h5
+DL_Track fasc=data/external/dl_track/v0.3.1/models_v0.3.0/model-fasc-VGG16_DiceBCE_200_512.h5
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1788890117.699691   68578 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+I0000 00:00:1788890121.292653   68578 gpu_device.cc:2043] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 14784 MB memory:  -> device: 0, name: Tesla T4, pci bus id: 0001:00:00.0, compute capability: 7.5
+I0000 00:00:1788890121.294697   68578 gpu_device.cc:2043] Created device /job:localhost/replica:0/task:0/device:GPU:1 with 14784 MB memory:  -> device: 1, name: Tesla T4, pci bus id: 0002:00:00.0, compute capability: 7.5
+I0000 00:00:1788890121.296498   68578 gpu_device.cc:2043] Created device /job:localhost/replica:0/task:0/device:GPU:2 with 14784 MB memory:  -> device: 2, name: Tesla T4, pci bus id: 0003:00:00.0, compute capability: 7.5
+I0000 00:00:1788890121.298272   68578 gpu_device.cc:2043] Created device /job:localhost/replica:0/task:0/device:GPU:3 with 14784 MB memory:  -> device: 3, name: Tesla T4, pci bus id: 0004:00:00.0, compute capability: 7.5
+Loaded DL_Track from data/external/dl_track
+[ WARN:0@9.116] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.116] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+I0000 00:00:1788890123.175326   68924 cuda_dnn.cc:461] Loaded cuDNN version 92501
+[ WARN:0@13.573] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@13.573] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@14.325] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@14.325] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@14.986] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@14.986] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@15.977] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@15.977] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@16.717] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@16.717] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@18.177] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@18.177] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@19.047] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@19.047] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@21.067] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@21.067] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@23.825] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@23.825] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@24.686] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@24.687] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@25.724] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@25.724] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@26.382] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@26.382] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@27.025] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@27.025] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@29.094] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@29.094] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@29.883] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@29.883] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@32.306] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@32.306] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@33.062] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@33.062] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@37.138] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@37.138] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@38.960] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@38.960] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@40.604] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@40.604] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@41.306] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@41.306] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@42.932] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@42.932] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@43.627] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@43.627] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@44.319] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@44.319] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+{
+  "n": 35,
+  "pa_mae": 1.4454561207042038,
+  "fl_mae": 23.149111032139878,
+  "mt_mae": 6.8428806695890545,
+  "umud": 1.4836540542195693,
+  "combo": 1.4836540542195693,
+  "n_est_scale": 33,
+  "n_gt_scale": 0,
+  "n_rows": 35,
+  "scale_mode": "pred",
+  "masks_from": "dl_track",
+  "img_size": 512,
+  "config": "configs/default.yaml",
+  "n_mt_ok": 4,
+  "n_mt_bad": 31,
+  "n_fl_ok": 6,
+  "n_fl_bad": 29,
+  "n_pa_ok": 32,
+  "n_pa_bad": 3,
+  "mt_ratio_median": 0.5273744193561173,
+  "fl_ratio_median": 0.5541391456938717,
+  "gate2_ok": false,
+  "gate0_ok": false
+}
+
+per-image ratios (mt_ratio | fl_ratio | pa_err):
+  BAD im_01_arch.tif: mt=0.53 fl=0.62 pa_err=5.20
+  BAD im_02_arch.tif: mt=0.34 fl=0.28 pa_err=5.19
+  BAD im_03_arch.tif: mt=0.52 fl=0.59 pa_err=4.39
+  BAD im_04_arch.tif: mt=0.89 fl=0.82 pa_err=0.10
+  BAD im_05_arch.tif: mt=0.53 fl=0.63 pa_err=7.09
+  BAD im_06_arch.tif: mt=0.55 fl=0.52 pa_err=1.62
+  BAD im_07_arch.tif: mt=0.81 fl=0.75 pa_err=0.98
+  BAD im_08_arch.tif: mt=0.51 fl=0.51 pa_err=0.00
+  OK im_09_arch.tif: mt=1.01 fl=1.07 pa_err=0.93
+  OK im_10_arch.tif: mt=1.01 fl=1.09 pa_err=2.37
+  BAD im_11_arch.tif: mt=0.52 fl=0.55 pa_err=1.46
+  BAD im_12_arch.tif: mt=0.52 fl=0.55 pa_err=2.92
+  BAD im_13_arch.tif: mt=0.60 fl=0.62 pa_err=1.98
+  BAD im_14_arch.tif: mt=0.51 fl=0.54 pa_err=0.12
+  BAD im_15_arch.tif: mt=0.86 fl=0.83 pa_err=0.12
+  BAD im_16_arch.tif: mt=0.53 fl=0.55 pa_err=0.80
+  BAD im_17_arch.tif: mt=0.52 fl=0.51 pa_err=0.06
+  BAD im_18_arch.tif: mt=0.86 fl=0.93 pa_err=0.69
+  OK im_19_arch.tif: mt=0.99 fl=0.99 pa_err=0.93
+  BAD im_20_arch.tif: mt=0.28 fl=0.30 pa_err=0.43
+  BAD im_21_arch.tif: mt=0.53 fl=0.47 pa_err=0.19
+  BAD im_22_arch.tif: mt=0.53 fl=0.56 pa_err=1.59
+  BAD im_23_arch.tif: mt=0.54 fl=0.55 pa_err=0.39
+  BAD im_24_arch.tif: mt=0.60 fl=0.57 pa_err=1.49
+  BAD im_25_arch.tif: mt=0.55 fl=0.55 pa_err=0.94
+  BAD im_26_arch.tif: mt=0.38 fl=0.40 pa_err=0.25
+  BAD im_27_arch.tif: mt=0.52 fl=0.50 pa_err=1.27
+  OK im_28_arch.tif: mt=1.00 fl=1.04 pa_err=0.72
+  BAD im_29_arch.tif: mt=0.51 fl=0.53 pa_err=2.03
+  BAD im_30_arch.tif: mt=0.73 fl=0.78 pa_err=1.82
+  BAD im_31_arch.tif: mt=0.53 fl=0.51 pa_err=0.15
+  BAD im_32_arch.tif: mt=0.89 fl=0.95 pa_err=1.26
+  BAD im_33_arch.tif: mt=0.52 fl=0.51 pa_err=0.21
+  BAD im_34_arch.tif: mt=0.51 fl=0.51 pa_err=0.34
+  BAD im_35_arch.tif: mt=0.53 fl=0.50 pa_err=0.57
+Wrote experiments/gate2b_dltrack_pred.json
+mt_bad=31/35 fl_bad=29/35 pa_bad=3
+GATE2_FAIL

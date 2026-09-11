@@ -46,3 +46,11 @@ submissions/*.csv
 # Experiments outputs
 experiments/**
 !experiments/.gitkeep
+
+# Large external benchmark binaries (re-downloadable via scripts)
+data/external/**
+*.7z
+*.h5
+*.exe
+*.tif
+*.tiff

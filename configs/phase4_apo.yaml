@@ -1,0 +1,43 @@
+data:
+  apo_imgs: apo_imgs_v1
+  apo_masks: apo_masks_v1
+  csv_sep: ;
+  fasc_imgs: fasc_imgs_v1
+  fasc_masks: fasc_masks_v1
+  root: data/raw
+  sample_submission: sample_submission.csv
+  test_images: test_images_v2
+device: cuda
+img_size: 512
+infer:
+  clip:
+    fl_mm:
+    - 25.0
+    - 140.0
+    mt_mm:
+    - 6.0
+    - 45.0
+    pa_deg:
+    - 3.0
+    - 40.0
+  mask_percentile: 0.3
+  mm_per_pixel: 0.06
+  temporal_smooth: true
+  temporal_window: 5
+  tta_hflip: true
+model:
+  architecture: Unet
+  classes: 1
+  encoder: tu-efficientnet_b4
+  encoder_weights: imagenet
+  in_channels: 3
+seed: 42
+train:
+  amp: true
+  batch_size: 4
+  checkpoint_dir: experiments/checkpoints_phase4
+  epochs: 25
+  lr: 0.00025
+  num_workers: 4
+  val_fraction: 0.15
+  weight_decay: 0.0001

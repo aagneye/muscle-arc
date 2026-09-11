@@ -1,0 +1,11 @@
+Scanning data/raw/test_images_v2: 309 images
+Scanning data/raw/apo_imgs_v1: 1048 images
+Scanning data/raw/fasc_imgs_v1: 2761 images
+
+Wrote experiments/scale_table.csv rows=4118 with_usable_scale=0 (0.0%) rejected_72dpi=247
+  apo_imgs_v1: 0/1048 scaled
+  fasc_imgs_v1: 0/2761 scaled
+  test_images_v2: 0/309 scaled
+
+DECISION test_with_usable_scale=0/309
+NO_METADATA_SCALE — use Phase A' residual regressor / richer clustering

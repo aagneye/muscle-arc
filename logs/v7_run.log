@@ -1,0 +1,71 @@
+=== geometry validator (gate A) ===
+[ WARN:0@25.041] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@25.041] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@30.427] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@30.427] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@31.818] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@31.818] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@32.352] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@32.352] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+Geometry-only on GT fasc masks (n=100)
+GT PA: n=40 mean=18.60 median=18.28 [11.9, 25.6]
+GT FL_px finite=40/100 median=1070.0 p90=1711.7
+GT MT_px finite=40/100 median=301.5
+FL vs MT/sin(PA) relative: n=40 mean=10.780% median=4.119% p90=37.923%
+
+Matched apo+fasc stems: 1048
+Matched GT PA median=16.56 mean=16.62 finite=100%
+Matched GT FL_px median=1102.0 MT_px median=292.8 FL finite=100%
+geom_stats fasc_comp=0 hough=0 radon=0 pa_apo=0 pa_nan=0 fl_x=0 fl_trig=0 fl_nan=0 mt_ok=0 mt_nan=0
+
+PASS
+gate_median_pa=16.56
+=== inference v7 (extrapolated-line geometry, v3 weights) ===
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+GT IMG_00001.tif (800x1200): pa=17.334 fl=79.423 mt=21.778 | pred pa=12.97 fl_px=1210.0 mt_px=338.1
+GT IMG_00002.tif (800x1200): pa=12.876 fl=69.424 mt=15.478 | pred pa=8.92 fl_px=1842.2 mt_px=270.9
+Scales by shape:
+  512x465: n=2 mt_scale=0.06077 fl_scale=0.05166
+  513x461: n=1 mt_scale=0.06077 fl_scale=0.05166
+  513x463: n=1 mt_scale=0.06077 fl_scale=0.05166
+  513x464: n=1 mt_scale=0.06077 fl_scale=0.05166
+  513x465: n=2 mt_scale=0.06077 fl_scale=0.05166
+  513x466: n=1 mt_scale=0.06077 fl_scale=0.05166
+  644x1088: n=50 mt_scale=0.06077 fl_scale=0.05166
+  800x1200: n=239 mt_scale=0.06077 fl_scale=0.05166
+  853x1069: n=11 mt_scale=0.06077 fl_scale=0.05166
+  853x959: n=1 mt_scale=0.06077 fl_scale=0.05166
+Temporal smooth disabled
+Wrote submissions/submission_v7.csv (309 rows)
+           pa_deg       fl_mm       mt_mm
+count  309.000000  309.000000  309.000000
+mean    13.107562   80.781388   23.590859
+std      4.555025   33.965616    6.455040
+min      3.222798   25.000000    8.105505
+25%      9.747141   55.426508   18.817758
+50%     12.356939   73.084551   22.531001
+75%     15.501253   97.809465   27.936740
+max     33.310382  140.000000   45.000000
+geom_stats fasc_comp=0 hough=0 radon=0 pa_apo=0 pa_nan=0 fl_x=0 fl_trig=0 fl_nan=0 mt_ok=0 mt_nan=0
+clip hits pa_deg: low=0 high=0
+clip hits fl_mm: low=6 high=45
+clip hits mt_mm: low=0 high=1
+GATE_B IMG_00001.tif: |PA_err|=4.37 (pred=12.97 gt=17.33)
+GATE_B IMG_00002.tif: |PA_err|=3.95 (pred=8.92 gt=12.88)
+=== compare vs v3 ===
+v7 describe:
+        pa_deg    fl_mm    mt_mm
+count  309.000  309.000  309.000
+mean    13.108   80.781   23.591
+std      4.555   33.966    6.455
+min      3.223   25.000    8.106
+25%      9.747   55.427   18.818
+50%     12.357   73.085   22.531
+75%     15.501   97.809   27.937
+max     33.310  140.000   45.000
+v7 PA median 12.356939387318963 FL>=139 47
+v3 PA median 7.852284974354137 FL>=139 1
+delta mean PA 0.1844684455104204
+delta mean FL 14.580735670327272

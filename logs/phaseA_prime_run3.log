@@ -1,0 +1,62 @@
+Reusing features experiments/osf_features.csv n=35
+{
+  "n": 35,
+  "cv_fl_mae": 14.756853761194277,
+  "cv_mt_mae": 3.8532722049566694,
+  "base06_fl_mae": 20.491362032353084,
+  "base06_mt_mae": 6.732356674085035,
+  "base_osfscale_fl_mae": 46.6060188694927,
+  "base_osfscale_mt_mae": 11.345495056598347,
+  "osf_median_mm_per_pixel": 0.1298701298701298,
+  "improved_vs_06": true
+}
+saved models -> experiments/residual_models
+apply_info {'n': 35, 'mode': 'blend', 'used_mm': True, 'used_scale': True, 'scale_median': 0.1298701298701298}
+insample FL MAE 11.529886985778552 MT MAE 2.566125922196699
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+Usable metadata scale keys: 0
+GT IMG_00001.tif (wider_hL_dark): pa=17.334 fl=79.423 mt=21.778 | pred pa=18.36 fl_px=1155.6 mt_px=376.4
+GT IMG_00002.tif (wider_hL_dark): pa=12.876 fl=69.424 mt=15.478 | pred pa=11.44 fl_px=1528.5 mt_px=298.3
+Scale assignment: {'n_meta': 0, 'n_cluster': 153, 'n_prefix': 86, 'n_primary': 70, 'primary_mt': 0.05487300004986717, 'primary_fl': 0.05707441812730271, 'clusters': ['wider_hL_dark']}
+Residual models applied to 309/309 rows: {'n': 309, 'mode': 'blend', 'used_mm': True, 'used_scale': True, 'scale_median': 0.08515318252992134}
+Residual gains fl=0.907 mt=0.892
+Temporal EMA+median over 18 groups
+Wrote submissions/submission_v9.csv (309 rows)
+           pa_deg       fl_mm       mt_mm
+count  309.000000  309.000000  309.000000
+mean    15.241789   76.431825   20.589254
+std      2.475015    5.110195    1.412047
+min     10.527045   50.731275   13.385216
+25%     13.169594   74.422266   19.935288
+50%     16.908082   74.422266   20.532197
+75%     16.908082   82.086671   20.532197
+max     21.911583   94.435749   32.033292
+geom_stats fasc_comp=4512 hough=146 radon=309 pa_apo=309 pa_nan=0 fl_x=260 fl_trig=44 fl_nan=5 mt_ok=309 mt_nan=0
+clip hits pa_deg: low=0 high=0
+clip hits fl_mm: low=0 high=0
+clip hits mt_mm: low=0 high=0
+GATE_B IMG_00001.tif: PA_err=2.17 FL_err=3.99 MT_err=2.23
+GATE_B IMG_00002.tif: PA_err=2.28 FL_err=6.01 MT_err=4.07
+{
+  "n": 2,
+  "pa_mae": 2.229,
+  "fl_mae": 6.214915497496506,
+  "mt_mae": 3.1499999999999995,
+  "combo": 0.7057638499165502
+}
+  IMG_00001.tif: PA 15.05/17.33 FL 80.64/79.42 MT 20.23/21.78
+  IMG_00002.tif: PA 15.05/12.88 FL 80.64/69.42 MT 20.23/15.48
+saved baseline -> experiments/local_mae_baseline.json
+{
+  "n": 2,
+  "pa_mae": 2.229,
+  "fl_mae": 4.999499999999998,
+  "mt_mae": 3.1499999999999995,
+  "combo": 0.6652499999999999
+}
+  IMG_00001.tif: PA 15.16/17.33 FL 75.44/79.42 MT 19.55/21.78
+  IMG_00002.tif: PA 15.16/12.88 FL 75.44/69.42 MT 19.55/15.48
+baseline_combo=0.7057638499165502 current_combo=0.6652499999999999 improved=True
+DONE

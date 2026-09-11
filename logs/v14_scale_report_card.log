@@ -1,0 +1,33 @@
+{
+  "gate1_ok": false,
+  "gate2_ok": false,
+  "gate3_ok": false,
+  "grown": false,
+  "submit": "HOLD",
+  "gate1": {
+    "n": 20,
+    "split": "holdout",
+    "pa_mae_deg": 8.13450290702919,
+    "fl_rel_mae": 0.1862281540053246,
+    "mt_rel_mae": 0.2212264784577565,
+    "geom_ok": false,
+    "route": "geometry_first"
+  },
+  "gate2": {
+    "n": 32,
+    "umud": 0.9939227069196122,
+    "n_mt_bad": 13,
+    "n_mt_ok": 19,
+    "mt_ratio_median": 1.02804919760869,
+    "fl_ratio_median": 1.1032703695372108,
+    "gate2_ok": false
+  },
+  "gate3": {
+    "fl_med": 92.48761721427006,
+    "fl_med_near_81": true,
+    "clip_frac": null,
+    "gate3_ok": false,
+    "gate4_ok": false
+  }
+}
+HOLD

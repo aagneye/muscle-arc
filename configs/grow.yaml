@@ -1,0 +1,48 @@
+seed: 42
+img_size: 512
+device: cuda
+
+data:
+  root: data/raw
+  apo_imgs: apo_imgs_v1
+  apo_masks: apo_masks_v1
+  fasc_imgs: fasc_imgs_v1
+  fasc_masks: fasc_masks_v1
+  test_images: test_images_v2
+  sample_submission: sample_submission.csv
+  csv_sep: ";"
+
+model:
+  architecture: Unet
+  encoder: tu-efficientnet_b4
+  encoder_weights: imagenet
+  in_channels: 3
+  classes: 1
+
+train:
+  batch_size: 4
+  epochs: 80
+  lr: 2.0e-4
+  weight_decay: 1.0e-4
+  num_workers: 4
+  val_fraction: 0.15  # fallback only if no split manifest
+  early_stop_patience: 12
+  use_augments: true
+  amp: true
+  split_dir: experiments/splits
+  checkpoint_dir: experiments/checkpoints_grow
+
+infer:
+  tta_hflip: true
+  mask_percentile: 0.30
+  apo_thr: 0.35
+  fasc_thr: 0.10
+  mm_per_pixel: 0.06
+  clip:
+    pa_deg: [3.0, 40.0]
+    fl_mm: [25.0, 140.0]
+    mt_mm: [6.0, 45.0]
+  temporal_smooth: true
+  temporal_window: 5
+  multiscale_tta: true
+  frangi_enhance_fasc: false

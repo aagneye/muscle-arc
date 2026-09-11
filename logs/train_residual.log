@@ -1,0 +1,15 @@
+Reusing features experiments/osf_features.csv n=35
+{
+  "n": 35,
+  "cv_fl_mae": 14.756853761194277,
+  "cv_mt_mae": 3.8532722049566694,
+  "base06_fl_mae": 20.491362032353084,
+  "base06_mt_mae": 6.732356674085035,
+  "base_osfscale_fl_mae": 46.6060188694927,
+  "base_osfscale_mt_mae": 11.345495056598347,
+  "osf_median_mm_per_pixel": 0.1298701298701298,
+  "improved_vs_06": true
+}
+saved models -> experiments/residual_models
+apply_info {'n': 35, 'mode': 'blend', 'used_mm': True, 'used_scale': True, 'scale_median': 0.1298701298701298}
+insample FL MAE 11.529886985778552 MT MAE 2.566125922196699

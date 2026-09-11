@@ -1,0 +1,16 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+GT IMG_00001.tif: pa=17.334 fl=79.423 mt=21.778 | pred_px pa=1.94 fl=752.1 mt=357.7
+GT IMG_00002.tif: pa=12.876 fl=69.424 mt=15.478 | pred_px pa=4.17 fl=3999.3 mt=290.6
+Calibrated mt_scale=0.05708 fl_scale=0.06148
+Wrote submissions/submission_v5.csv (309 rows) mt_scale=0.05708 fl_scale=0.06148
+           pa_deg       fl_mm       mt_mm
+count  309.000000  309.000000  309.000000
+mean    14.599897   87.712878   18.435748
+std     13.348693   47.497436    3.789840
+min      1.000000   20.000000    6.151369
+25%      4.158435   48.319223   15.933100
+50%     10.357589   74.574083   18.152788
+75%     20.377785  150.000000   20.985262
+max     45.000000  150.000000   29.733618

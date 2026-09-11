@@ -1,0 +1,61 @@
+unpack benchmark_dataset_architecture_GM_dynamic_v0.1.0.zip
+unpack benchmark_dataset_architecture_v0.1.0.zip
+unpack benchmark_dataset_csa_RF_v0.1.0.zip
+Wrote experiments/osf_expert_gt.csv rows=35
+          pa_deg      fl_mm      mt_mm  mm_per_pixel
+count  35.000000  35.000000  35.000000     35.000000
+mean   18.291171  60.680364  17.772012      0.116247
+std     3.645441  10.241822   3.169785      0.018411
+min    12.860667  35.688312  12.077922      0.079365
+25%    15.685500  54.968182  15.146608      0.112360
+50%    17.200000  60.275437  17.735618      0.129870
+75%    20.119500  68.285916  20.100823      0.129870
+max    27.500000  84.435495  24.379775      0.135135
+scales: [0.07937, 0.08929, 0.10638, 0.11236, 0.11765, 0.12987, 0.13514]
+Listing Expert Analysed Benchmark Image Datasets...
+skip data/external/umud_osf/ExpertAnalysed/benchmark_dataset_architecture_v0.1.0.zip
+skip data/external/umud_osf/ExpertAnalysed/benchmark_dataset_csa_RF_v0.1.0.zip
+skip data/external/umud_osf/ExpertAnalysed/benchmark_dataset_architecture_GM_dynamic_v0.1.0.zip
+Done. Tree:
+  ExpertAnalysed/benchmark_dataset_architecture_GM_dynamic_v0.1.0.zip 63842325
+  ExpertAnalysed/benchmark_dataset_architecture_v0.1.0.zip 6522838
+  ExpertAnalysed/benchmark_dataset_csa_RF_v0.1.0.zip 11019664
+  unpacked/benchmark_dataset_architecture_v0.1.0/Readme.md 1085
+  unpacked/benchmark_dataset_architecture_v0.1.0/Results_benchmark_architecture_v0.1.0.xlsx 18303
+  unpacked/benchmark_dataset_architecture_v0.1.0/Thumbs.db 491520
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_01_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_02_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_03_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_04_arch.tif 2547314
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_05_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_06_arch.tif 1440338
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_07_arch.tif 786586
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_08_arch.tif 1440338
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_09_arch.tif 1565138
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_10_arch.tif 1440154
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_11_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_12_arch.tif 1440154
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_13_arch.tif 1440154
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_14_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_15_arch.tif 2547314
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_16_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_17_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_18_arch.tif 2547314
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_19_arch.tif 1440154
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_20_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_21_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_22_arch.tif 1440154
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_23_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_24_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_25_arch.tif 1440154
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_26_arch.tif 1440154
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_27_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_28_arch.tif 1440154
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_29_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_30_arch.tif 1440154
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_31_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_32_arch.tif 2217074
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_33_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_34_arch.tif 1101218
+  unpacked/benchmark_dataset_architecture_v0.1.0/im_35_arch.tif 1101218
+Building experiments/osf_expert_gt.csv ...

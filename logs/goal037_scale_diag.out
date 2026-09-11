@@ -1,0 +1,99 @@
+[ WARN:0@1.480] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@1.480] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@1.819] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@1.819] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@1.975] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@1.975] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@2.132] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@2.132] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@2.361] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@2.361] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@2.519] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@2.519] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@2.917] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@2.917] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@3.239] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@3.239] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@3.909] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@3.909] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@4.736] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@4.736] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@5.127] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@5.127] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@5.350] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@5.350] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@5.504] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@5.504] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@5.657] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@5.657] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@6.280] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@6.280] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@6.434] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@6.434] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@7.525] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@7.525] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@7.678] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@7.678] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.904] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.904] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@10.405] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@10.405] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@10.930] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@10.930] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@11.086] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@11.086] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@11.960] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@11.960] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@12.117] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@12.117] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@12.272] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@12.272] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+n 35 with_pred 33
+                 count      mean       std  ...       50%       75%       max
+source                                      ...                              
+depth_hyp_3.5cm   18.0  0.526514  0.013705  ...  0.523301  0.525086  0.581055
+depth_hyp_3cm      2.0  0.540929  0.070398  ...  0.540929  0.565819  0.590708
+depth_hyp_4.5cm    4.0  0.876353  0.001106  ...  0.876352  0.876692  0.877709
+none               0.0       NaN       NaN  ...       NaN       NaN       NaN
+ticks_10mm         4.0  0.827954  0.302942  ...  0.979425  0.979425  0.979425
+ticks_5mm          5.0  0.660955  0.207272  ...  0.591052  0.714737  0.996957
+
+[6 rows x 8 columns]
+overall ratio median 0.5243190661478602 mean 0.6267004394224825
+      image_id    gt_mm  pred_mm    ratio          source     conf
+im_01_arch.tif 0.129870 0.068359 0.526367 depth_hyp_3.5cm 0.550000
+im_02_arch.tif 0.129870 0.068226 0.525341 depth_hyp_3.5cm 0.550000
+im_03_arch.tif 0.129870 0.068226 0.525341 depth_hyp_3.5cm 0.550000
+im_04_arch.tif 0.079365 0.069552 0.876352 depth_hyp_4.5cm 0.550000
+im_05_arch.tif 0.129870 0.067829 0.522287 depth_hyp_3.5cm 0.550000
+im_06_arch.tif 0.135135 0.066372 0.491150   depth_hyp_3cm 0.450000
+im_07_arch.tif 0.117647 0.068359 0.581055 depth_hyp_3.5cm 0.550000
+im_08_arch.tif 0.112360 0.056514 0.502972       ticks_5mm 0.968444
+im_09_arch.tif 0.106383 0.106059 0.996957       ticks_5mm 0.999457
+im_10_arch.tif 0.089286 0.087449 0.979425      ticks_10mm 0.829215
+im_11_arch.tif 0.129870 0.067829 0.522287 depth_hyp_3.5cm 0.550000
+im_12_arch.tif 0.112360 0.056074 0.499054       ticks_5mm 0.755512
+im_13_arch.tif 0.112360 0.066372 0.590708   depth_hyp_3cm 0.450000
+im_14_arch.tif 0.129870 0.068226 0.525341 depth_hyp_3.5cm 0.450000
+im_15_arch.tif 0.079365 0.069552 0.876352 depth_hyp_4.5cm 0.550000
+im_16_arch.tif 0.129870 0.068093 0.524319 depth_hyp_3.5cm 0.550000
+im_17_arch.tif 0.129870 0.067698 0.521277 depth_hyp_3.5cm 0.550000
+im_18_arch.tif 0.079365 0.069659 0.877709 depth_hyp_4.5cm 0.550000
+im_19_arch.tif 0.089286 0.087449 0.979425      ticks_10mm 0.829215
+im_20_arch.tif 0.129870 0.067961 0.523301 depth_hyp_3.5cm 0.550000
+im_21_arch.tif 0.129870 0.067829 0.522287 depth_hyp_3.5cm 0.550000
+im_22_arch.tif 0.112360      NaN      NaN            none 0.000000
+im_23_arch.tif 0.129870 0.067961 0.523301 depth_hyp_3.5cm 0.550000
+im_24_arch.tif 0.129870 0.076760 0.591052       ticks_5mm 0.808261
+im_25_arch.tif 0.112360      NaN      NaN            none 0.000000
+im_26_arch.tif 0.112360 0.041971 0.373542      ticks_10mm 0.937097
+im_27_arch.tif 0.129870 0.067961 0.523301 depth_hyp_3.5cm 0.550000
+im_28_arch.tif 0.089286 0.087449 0.979425      ticks_10mm 0.829215
+im_29_arch.tif 0.129870 0.067961 0.523301 depth_hyp_3.5cm 0.550000
+im_30_arch.tif 0.112360 0.080308 0.714737       ticks_5mm 0.916667
+im_31_arch.tif 0.129870 0.067698 0.521277 depth_hyp_3.5cm 0.550000
+im_32_arch.tif 0.079365 0.069444 0.875000 depth_hyp_4.5cm 0.450000
+im_33_arch.tif 0.129870 0.067698 0.521277 depth_hyp_3.5cm 0.550000
+im_34_arch.tif 0.129870 0.067698 0.521277 depth_hyp_3.5cm 0.550000
+im_35_arch.tif 0.129870 0.068093 0.524319 depth_hyp_3.5cm 0.550000
+suggested global scale_gain 1.9072356215213349

@@ -1,0 +1,10 @@
+310 submissions/submission.csv
+  0%|          | 0.00/20.2k [00:00<?, ?B/s]100%|██████████| 20.2k/20.2k [00:00<00:00, 61.8kB/s]
+400 Client Error: Bad Request for url: https://www.kaggle.com/api/v1/competitions/submissions/submit/umud-challenge-muscle-architecture-in-ultrasound-data
+{"code":400,"message":"BlobFileTokens must be specified."}
+HTTP:400
+{"code":400,"message":"BlobFileTokens must be specified."}
+HTTP:400
+2026-09-09T07:23:01.133Z 1.01177 complete dltrack_lb_mask-letterbox-chrome-mask
+2026-09-09T07:10:01.24Z 0.92954 complete hybrid-lb-cropped-sof-console
+2026-09-09T07:00:41.877Z 1.00893 complete dltrack_lb-letterbox-nocrop-Gate0-0.287

@@ -1,0 +1,144 @@
+=== Infer dltrack_lb_crop sector-crop auto + letterbox ===
+DL_Track apo=data/external/dl_track/v0.3.1/models_v0.3.0/model-apo-VGG16_DiceBCE_512_300.h5
+DL_Track fasc=data/external/dl_track/v0.3.1/models_v0.3.0/model-fasc-VGG16_DiceBCE_200_512.h5
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1788937502.434360   45229 cpu_feature_guard.cc:227] This TensorFlow binary is optimized to use available CPU instructions in performance-critical operations.
+To enable the following instructions: AVX2 FMA, in other operations, rebuild TensorFlow with the appropriate compiler flags.
+I0000 00:00:1788937505.488488   45229 gpu_device.cc:2043] Created device /job:localhost/replica:0/task:0/device:GPU:0 with 14784 MB memory:  -> device: 0, name: Tesla T4, pci bus id: 0001:00:00.0, compute capability: 7.5
+I0000 00:00:1788937505.490434   45229 gpu_device.cc:2043] Created device /job:localhost/replica:0/task:0/device:GPU:1 with 14784 MB memory:  -> device: 1, name: Tesla T4, pci bus id: 0002:00:00.0, compute capability: 7.5
+I0000 00:00:1788937505.492161   45229 gpu_device.cc:2043] Created device /job:localhost/replica:0/task:0/device:GPU:2 with 14784 MB memory:  -> device: 2, name: Tesla T4, pci bus id: 0003:00:00.0, compute capability: 7.5
+I0000 00:00:1788937505.493950   45229 gpu_device.cc:2043] Created device /job:localhost/replica:0/task:0/device:GPU:3 with 14784 MB memory:  -> device: 3, name: Tesla T4, pci bus id: 0004:00:00.0, compute capability: 7.5
+Loaded DL_Track from data/external/dl_track
+Thresholds apo=0.350 fasc=0.100
+Usable metadata scale keys: 0
+Depth-scale table keys: 414
+[ WARN:0@9.315] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.315] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.316] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.316] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.317] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.317] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.318] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.318] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.320] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.320] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.321] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.321] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.323] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.323] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.324] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.324] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.327] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.327] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.330] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.330] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.331] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.331] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.333] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.333] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.334] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.334] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.335] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.335] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.339] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.339] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.340] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.340] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.342] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.342] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.343] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.343] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.346] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.346] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.348] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.348] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.350] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.350] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.351] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.351] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.353] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.353] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.354] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.354] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+[ WARN:0@9.355] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50838 (0xc696) encountered
+[ WARN:0@9.355] global grfmt_tiff.cpp:123 TIFF_Warning TIFFReadDirectory: Unknown field with tag 50839 (0xc697) encountered
+OSF shape cache warmed: 6 shapes
+Loaded scale detector experiments/checkpoints_scale/scale_detector_native.pt
+I0000 00:00:1788937510.118469   45577 cuda_dnn.cc:461] Loaded cuDNN version 92501
+OCR/tick scales after live+group: 618 keys (live=204, crop_applied=250)
+OSF shape lookup entries: 20
+GT IMG_00001.tif (wide_hM_mid): pa=17.334 fl=79.423 mt=21.778 | pred pa=15.18 fl_px=480.8 mt_px=167.6
+GT IMG_00002.tif (wider_hM_mid): pa=12.876 fl=69.424 mt=15.478 | pred pa=9.12 fl_px=1354.8 mt_px=256.4
+Scale assignment: {'n_meta': 0, 'n_ocr': 309, 'n_cluster': 0, 'n_prefix': 0, 'n_shape': 0, 'n_primary': 0, 'primary_mt': 0.09513497877109245, 'primary_fl': 0.10821907570151688, 'clusters': ['wide_hM_mid', 'wider_hM_mid']}
+Residual models skipped (off or missing)
+Sample residual gains disabled (n_ocr=309)
+Temporal PA-only EMA over 18 groups (OCR scales preserved)
+Wrote submissions/submission_dltrack_lb_crop.csv (309 rows)
+           pa_deg       fl_mm       mt_mm
+count  309.000000  309.000000  309.000000
+mean    15.081546   67.720171   16.308836
+std      3.415710   30.784300    6.130043
+min      9.106478   25.000000    6.000000
+25%     12.956772   37.364437   10.882630
+50%     14.281340   72.610084   18.776436
+75%     16.762997   88.746443   20.000000
+max     35.517167  140.000000   39.247117
+geom_stats fasc_comp=18572 hough=6 radon=307 pa_apo=307 pa_nan=2 fl_x=298 fl_trig=157 fl_nan=6 mt_ok=199 mt_nan=110
+clip hits pa_deg: low=0 high=0
+clip hits fl_mm: low=51 high=10
+clip hits mt_mm: low=26 high=0
+Wrote debug submissions/submission_dltrack_lb_crop_debug.csv
+GATE_B IMG_00001.tif: PA_err=3.05 FL_err=43.92 MT_err=9.40
+GATE_B IMG_00002.tif: PA_err=0.14 FL_err=19.55 MT_err=1.36
+{
+  "fl_std_cand": 30.78429999476044,
+  "fl_std_ref": 13.811455718819026,
+  "mt_std_cand": 6.130042873101467,
+  "mt_std_ref": 3.207089129930254,
+  "fl_clip_frac": 0.19741100323624594,
+  "mt_clip_frac": 0.08414239482200647,
+  "fl_med": 72.6100838770195,
+  "mt_med": 18.776435911941643,
+  "ok": false,
+  "reasons": [
+    "fl_clip_high",
+    "mt_clip_high"
+  ],
+  "fl_med_near_81": true,
+  "gate3_ok": false,
+  "gate3_warn_fl_med": false,
+  "gate4_ok": false
+}
+GATE3_FAIL
+overall med 14.28134030430338 72.6100838770195 18.776435911941643
+            pa_deg      fl_mm      mt_mm
+kind                                    
+console  14.806251  68.341033  18.210085
+cropped  13.092941  83.887682  20.000000
+gate3 {'fl_std_cand': 30.78429999476044, 'fl_std_ref': 13.811455718819026, 'mt_std_cand': 6.130042873101467, 'mt_std_ref': 3.207089129930254, 'fl_clip_frac': 0.19741100323624594, 'mt_clip_frac': 0.08414239482200647, 'fl_med': 72.6100838770195, 'mt_med': 18.776435911941643, 'ok': False, 'reasons': ['fl_clip_high', 'mt_clip_high'], 'fl_med_near_81': True, 'gate3_ok': False, 'gate3_warn_fl_med': False, 'gate4_ok': False}
+HOLD
+hybrid n_lb 59 n_sof 250 FL 78.79995828344948 MT 20.0
+{
+  "fl_std_cand": 19.911069528948815,
+  "fl_std_ref": 13.811455718819026,
+  "mt_std_cand": 4.7374804045335095,
+  "mt_std_ref": 3.207089129930254,
+  "fl_clip_frac": 0.003236245954692557,
+  "mt_clip_frac": 0.0,
+  "fl_med": 78.79995828344948,
+  "mt_med": 20.0,
+  "ok": true,
+  "reasons": [],
+  "fl_med_near_81": true,
+  "gate3_ok": true,
+  "gate3_warn_fl_med": false,
+  "gate4_ok": true
+}
+GATE3_OK
+hybrid SUBMIT_OK 78.79995828344948 20.0 True
+310 submissions/submission.csv
+  0%|          | 0.00/20.4k [00:00<?, ?B/s]100%|██████████| 20.4k/20.4k [00:00<00:00, 61.9kB/s]
+Successfully submitted to UMUD Challenge: Muscle Architecture in Ultrasound Data2026-09-09T07:10:01.24Z 0.92954 complete hybrid-lb-cropped-sof-console
+2026-09-09T07:00:41.877Z 1.00893 complete dltrack_lb-letterbox-nocrop-Gate0-0.287
+2026-09-09T06:32:34.36Z 1.01690 complete dltrack_g0d-nocrop-shape-scale
+DONE

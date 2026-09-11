@@ -1,0 +1,26 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+Usable metadata scale keys: 0
+GT IMG_00001.tif (wider_hL_dark): pa=17.334 fl=79.423 mt=21.778 | pred pa=18.36 fl_px=1155.6 mt_px=376.4
+GT IMG_00002.tif (wider_hL_dark): pa=12.876 fl=69.424 mt=15.478 | pred pa=11.44 fl_px=1528.5 mt_px=298.3
+Scale assignment: {'n_meta': 0, 'n_cluster': 153, 'n_prefix': 86, 'n_primary': 70, 'primary_mt': 0.05487300004986717, 'primary_fl': 0.05707441812730271, 'clusters': ['wider_hL_dark']}
+Residual models applied to 156/309 non-cluster rows: {'n': 309, 'mode': 'scale', 'used_mm': True, 'used_scale': True, 'scale_median': 0.08515318252992134}
+Residual gains fl=1.000 mt=1.000
+Temporal EMA+median over 18 groups
+Wrote submissions/submission_v9b.csv (309 rows)
+           pa_deg       fl_mm       mt_mm
+count  309.000000  309.000000  309.000000
+mean    15.241789   92.679287   25.928419
+std      2.475015   20.862550    7.886515
+min     10.527045   47.942434   13.218114
+25%     13.169594   77.463122   20.283007
+50%     16.908082   77.463122   20.283007
+75%     16.908082  118.979482   33.562449
+max     21.911583  140.000000   45.000000
+geom_stats fasc_comp=4512 hough=146 radon=309 pa_apo=309 pa_nan=0 fl_x=260 fl_trig=44 fl_nan=5 mt_ok=309 mt_nan=0
+clip hits pa_deg: low=0 high=0
+clip hits fl_mm: low=0 high=1
+clip hits mt_mm: low=0 high=3
+GATE_B IMG_00001.tif: PA_err=2.17 FL_err=5.89 MT_err=0.53
+GATE_B IMG_00002.tif: PA_err=2.28 FL_err=15.88 MT_err=6.83

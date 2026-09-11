@@ -1,0 +1,142 @@
+=== Gate2b: DL_Track + OUR geom + pred scale (no chrome-mask on OSF crops) ===
+DL_Track apo=data/external/dl_track/v0.3.1/models_v0.3.0/model-apo-VGG16_DiceBCE_512_300.h5
+DL_Track fasc=data/external/dl_track/v0.3.1/models_v0.3.0/model-fasc-VGG16_DiceBCE_200_512.h5
+2026-09-09 17:00:28.131660: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2026-09-09 17:00:28.268410: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:00:28.268450: I tensorflow/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+2026-09-09 17:00:28.304297: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-09-09 17:00:28.801999: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:00:28.802092: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:00:28.802103: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
+2026-09-09 17:00:29.847417: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:00:29.847515: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublas.so.11'; dlerror: libcublas.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:00:29.847577: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublasLt.so.11'; dlerror: libcublasLt.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:00:29.847637: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcufft.so.10'; dlerror: libcufft.so.10: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:00:29.847703: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcusparse.so.11'; dlerror: libcusparse.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:00:29.847766: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:00:29.847778: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+Skipping registering GPU devices...
+2026-09-09 17:00:29.847984: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Loaded DL_Track from data/external/dl_track geom=ours
+{
+  "n": 35,
+  "pa_mae": 1.6100321089420166,
+  "fl_mae": 11.710269017756334,
+  "mt_mae": 3.0585160460671905,
+  "umud": 0.7545665949974758,
+  "combo": 0.7545665949974758,
+  "n_est_scale": 35,
+  "n_gt_scale": 0,
+  "n_rows": 35,
+  "scale_mode": "pred",
+  "masks_from": "dl_track",
+  "geom": "ours",
+  "chrome_mask": false,
+  "img_size": 512,
+  "config": "configs/default.yaml",
+  "n_mt_ok": 21,
+  "n_mt_bad": 14,
+  "n_fl_ok": 18,
+  "n_fl_bad": 17,
+  "n_pa_ok": 31,
+  "n_pa_bad": 4,
+  "mt_ratio_median": 0.9815769508603419,
+  "fl_ratio_median": 0.9732777769029928,
+  "gate2_ok": false,
+  "gate0_ok": false
+}
+
+per-image ratios (mt_ratio | fl_ratio | pa_err):
+  BAD im_01_arch.tif: mt=0.59 fl=0.72 pa_err=6.21
+  BAD im_02_arch.tif: mt=0.51 fl=0.68 pa_err=5.64
+  BAD im_03_arch.tif: mt=0.58 fl=0.58 pa_err=1.30
+  OK im_04_arch.tif: mt=1.04 fl=1.04 pa_err=2.02
+  OK im_05_arch.tif: mt=1.01 fl=1.23 pa_err=7.64
+  OK im_06_arch.tif: mt=0.91 fl=0.74 pa_err=0.47
+  BAD im_07_arch.tif: mt=1.40 fl=1.29 pa_err=0.98
+  OK im_08_arch.tif: mt=1.01 fl=1.04 pa_err=1.17
+  OK im_09_arch.tif: mt=0.98 fl=1.02 pa_err=0.97
+  OK im_10_arch.tif: mt=1.01 fl=1.06 pa_err=1.31
+  BAD im_11_arch.tif: mt=0.60 fl=0.58 pa_err=0.96
+  OK im_12_arch.tif: mt=1.04 fl=1.04 pa_err=2.20
+  OK im_13_arch.tif: mt=1.00 fl=1.04 pa_err=1.98
+  OK im_14_arch.tif: mt=0.98 fl=0.95 pa_err=0.76
+  OK im_15_arch.tif: mt=1.00 fl=0.94 pa_err=0.36
+  BAD im_16_arch.tif: mt=0.60 fl=0.62 pa_err=0.47
+  OK im_17_arch.tif: mt=0.99 fl=0.97 pa_err=0.37
+  OK im_18_arch.tif: mt=0.97 fl=1.09 pa_err=1.04
+  OK im_19_arch.tif: mt=0.98 fl=0.98 pa_err=0.93
+  OK im_20_arch.tif: mt=1.06 fl=1.51 pa_err=7.98
+  OK im_21_arch.tif: mt=1.01 fl=0.98 pa_err=0.42
+  OK im_22_arch.tif: mt=1.00 fl=1.02 pa_err=1.49
+  BAD im_23_arch.tif: mt=0.61 fl=0.57 pa_err=0.56
+  BAD im_24_arch.tif: mt=0.61 fl=0.71 pa_err=1.07
+  OK im_25_arch.tif: mt=1.02 fl=1.03 pa_err=1.17
+  BAD im_26_arch.tif: mt=0.38 fl=0.41 pa_err=0.09
+  OK im_27_arch.tif: mt=1.01 fl=0.97 pa_err=1.19
+  OK im_28_arch.tif: mt=0.99 fl=1.07 pa_err=0.17
+  BAD im_29_arch.tif: mt=0.57 fl=0.61 pa_err=1.87
+  BAD im_30_arch.tif: mt=0.72 fl=0.76 pa_err=1.49
+  BAD im_31_arch.tif: mt=0.60 fl=0.59 pa_err=0.29
+  OK im_32_arch.tif: mt=1.01 fl=1.01 pa_err=0.86
+  OK im_33_arch.tif: mt=1.00 fl=1.01 pa_err=0.32
+  BAD im_34_arch.tif: mt=0.58 fl=0.57 pa_err=0.37
+  BAD im_35_arch.tif: mt=0.59 fl=0.56 pa_err=0.27
+Wrote experiments/gate2b_dltrack_win.json
+mt_bad=14/35 fl_bad=17/35 pa_bad=4
+GATE2_FAIL
+Gate2b UMUD=0.7545665949974758
+=== Test infer (calibrate_predict letterbox + chrome-mask + our geom) ===
+DL_Track apo=data/external/dl_track/v0.3.1/models_v0.3.0/model-apo-VGG16_DiceBCE_512_300.h5
+DL_Track fasc=data/external/dl_track/v0.3.1/models_v0.3.0/model-fasc-VGG16_DiceBCE_200_512.h5
+2026-09-09 17:02:25.960562: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+2026-09-09 17:02:26.111621: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:02:26.111660: I tensorflow/stream_executor/cuda/cudart_stub.cc:29] Ignore above cudart dlerror if you do not have a GPU set up on your machine.
+2026-09-09 17:02:26.146693: E tensorflow/stream_executor/cuda/cuda_blas.cc:2981] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+2026-09-09 17:02:26.880169: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer.so.7'; dlerror: libnvinfer.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:02:26.880276: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libnvinfer_plugin.so.7'; dlerror: libnvinfer_plugin.so.7: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:02:26.880287: W tensorflow/compiler/tf2tensorrt/utils/py_utils.cc:38] TF-TRT Warning: Cannot dlopen some TensorRT libraries. If you would like to use Nvidia GPU with TensorRT, please make sure the missing libraries mentioned above are installed properly.
+2026-09-09 17:02:27.459338: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudart.so.11.0'; dlerror: libcudart.so.11.0: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:02:27.459449: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublas.so.11'; dlerror: libcublas.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:02:27.459526: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcublasLt.so.11'; dlerror: libcublasLt.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:02:27.459601: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcufft.so.10'; dlerror: libcufft.so.10: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:02:27.459690: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcusparse.so.11'; dlerror: libcusparse.so.11: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:02:27.459761: W tensorflow/stream_executor/platform/default/dso_loader.cc:64] Could not load dynamic library 'libcudnn.so.8'; dlerror: libcudnn.so.8: cannot open shared object file: No such file or directory; LD_LIBRARY_PATH: /home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/cv2/../../lib64:
+2026-09-09 17:02:27.459773: W tensorflow/core/common_runtime/gpu/gpu_device.cc:1934] Cannot dlopen some GPU libraries. Please make sure the missing libraries mentioned above are installed properly if you would like to use GPU. Follow the guide at https://www.tensorflow.org/install/gpu for how to download and setup the required libraries for your platform.
+Skipping registering GPU devices...
+2026-09-09 17:02:27.459973: I tensorflow/core/platform/cpu_feature_guard.cc:193] This TensorFlow binary is optimized with oneAPI Deep Neural Network Library (oneDNN) to use the following CPU instructions in performance-critical operations:  AVX2 FMA
+To enable them in other operations, rebuild TensorFlow with the appropriate compiler flags.
+Loaded DL_Track from data/external/dl_track
+Geometry mode: ours
+Thresholds apo=0.350 fasc=0.100
+Usable metadata scale keys: 0
+Depth-scale table keys: 414
+OSF shape cache warmed: 6 shapes
+Loaded scale detector experiments/checkpoints_scale/scale_detector_native.pt
+OCR/tick scales after live+group: 618 keys (live=204, crop_applied=241)
+OSF shape lookup entries: 1
+GT IMG_00001.tif (wider_hL_dark): pa=17.334 fl=79.423 mt=21.778 | pred pa=18.33 fl_px=1076.8 mt_px=322.4
+GT IMG_00002.tif (wider_hL_dark): pa=12.876 fl=69.424 mt=15.478 | pred pa=8.90 fl_px=1477.5 mt_px=274.6
+Scale assignment: {'n_meta': 0, 'n_ocr': 309, 'n_cluster': 0, 'n_prefix': 0, 'n_shape': 0, 'n_primary': 0, 'primary_mt': 0.0619523026471121, 'primary_fl': 0.06037253910821551, 'clusters': ['wider_hL_dark']}
+Official geometry mm rows: 0/309
+Traceback (most recent call last):
+  File "/home/azureuser/muscle-arc/scripts/calibrate_predict.py", line 739, in <module>
+    main()
+  File "/home/azureuser/muscle-arc/scripts/calibrate_predict.py", line 627, in main
+    residual_models = load_residual_models(args.residual_model_dir)
+  File "/home/azureuser/muscle-arc/src/muscle_arc/geometry/residual_scale.py", line 159, in load_models
+    out["mm"] = joblib.load(mm_path)
+  File "/home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/joblib/numpy_pickle.py", line 755, in load
+    obj = _unpickle(
+  File "/home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/joblib/numpy_pickle.py", line 632, in _unpickle
+    obj = unpickler.load()
+  File "/usr/lib/python3.10/pickle.py", line 1213, in load
+    dispatch[key[0]](self)
+  File "/usr/lib/python3.10/pickle.py", line 1590, in load_reduce
+    stack[-1] = func(*args)
+  File "/home/azureuser/muscle-arc/.venv/lib/python3.10/site-packages/numpy/random/_pickle.py", line 34, in __bit_generator_ctor
+    raise ValueError(str(bit_generator_name) + ' is not a known '
+ValueError: <class 'numpy.random._pcg64.PCG64'> is not a known BitGenerator module.

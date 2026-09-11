@@ -1,0 +1,17 @@
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+sample_submission has 2 rows (< 309 preds); using all test image filenames
+Wrote submissions/submission.csv (309 rows)
+     image_id  pa_deg      fl_mm     mt_mm
+IMG_00001.tif     5.0 121.090427 29.015989
+IMG_00002.tif     5.0 121.090427 29.015989
+IMG_00003.tif     5.0 121.090427 29.015989
+           pa_deg       fl_mm       mt_mm
+count  309.000000  309.000000  309.000000
+mean     6.654440  119.189709   36.659514
+std      4.230684   12.373001    9.021911
+min      5.000000   67.226995   22.780445
+25%      5.000000  119.739784   29.794254
+50%      5.000000  120.660544   33.643136
+75%      5.607659  127.241868   40.000000
+max     27.077040  138.481520   60.000000

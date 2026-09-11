@@ -1,0 +1,27 @@
+Gate1 split=holdout_intersect stems: 20 / matched=1048
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+Unexpected keys (bn2.num_batches_tracked, bn2.bias, bn2.running_mean, bn2.running_var, bn2.weight, classifier.bias, classifier.weight, conv_head.weight) found while loading pretrained weights. This may be expected if model is being adapted.
+{
+  "n": 20,
+  "split": "holdout",
+  "split_note": "holdout_intersect",
+  "gt_pa_median": 12.034198011677418,
+  "gt_fl_px_median": 1324.324327229851,
+  "gt_mt_px_median": 309.4992199831768,
+  "mode": "gt_vs_pred",
+  "apo_ckpt": "experiments/checkpoints_phase4/apo_best.pt",
+  "fasc_ckpt": "experiments/checkpoints_phase4/fasc_best.pt",
+  "pa_mae_deg": 8.13450290702919,
+  "fl_rel_mae": 0.1862281540053246,
+  "mt_rel_mae": 0.2212264784577565,
+  "n_pa": 20,
+  "n_fl": 17,
+  "n_mt": 20,
+  "geom_ok": false,
+  "gate1_ok": false,
+  "route": "geometry_first"
+}
+geom_stats fasc_comp=1428 hough=0 radon=40 pa_apo=40 pa_nan=0 fl_x=40 fl_trig=31 fl_nan=3 mt_ok=40 mt_nan=0
+Wrote experiments/gate1_geometry.json
+GATE1_FAIL
+GATE1_ROUTE geometry_first
