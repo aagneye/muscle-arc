@@ -108,6 +108,15 @@ def main() -> None:
             f"  {r['id']}: PA {r['pa_pr']:.2f}/{r['pa_gt']:.2f} "
             f"FL {r['fl_pr']:.2f}/{r['fl_gt']:.2f} MT {r['mt_pr']:.2f}/{r['mt_gt']:.2f}"
         )
+    if metrics["n"] < 10:
+        print(
+            f"\nWARNING: n={metrics['n']} sample rows. v9 lesson (2026-09-05): a change "
+            "that improved this exact local MAE check on n=2 rows scored WORSE on the "
+            "real leaderboard (1.062 vs v8's 0.999). This script alone is NOT a submit "
+            "gate — always confirm with scripts/eval_osf_pipeline.py (n>=10, GATE2_OK) "
+            "before submitting. See docs/research_scale_reader.md and "
+            ".cursor/rules/scale-and-gates.mdc."
+        )
 
     args.baseline.parent.mkdir(parents=True, exist_ok=True)
     if args.save_baseline or not args.baseline.exists():

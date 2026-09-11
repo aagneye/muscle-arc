@@ -120,6 +120,16 @@ def main() -> None:
         help="If set with --masks-from dl_track --scale-mode gt, write Gate0 JSON",
     )
     parser.add_argument("--gate0-max-umud", type=float, default=0.42)
+    parser.add_argument(
+        "--tick-keypoint-ckpt",
+        type=Path,
+        default=None,
+        help=(
+            "Optional TickKeypointNet ckpt (scripts/train_tick_keypoint.py); when set, "
+            "joins the scale_fusion jury for --scale-mode pred/auto alongside the existing "
+            "OSF-shape-priority heuristic. Off by default — matches calibrate_predict.py."
+        ),
+    )
     args = parser.parse_args()
 
     cfg = yaml.safe_load(args.config.read_text())
@@ -161,6 +171,13 @@ def main() -> None:
             f"Loaded dual U-Nets apo={args.apo_ckpt} fasc={args.fasc_ckpt} img_size={img_size}"
         )
 
+    tick_kp_model = None
+    if args.tick_keypoint_ckpt is not None and args.tick_keypoint_ckpt.exists():
+        from muscle_arc.models.tick_keypoint import load_tick_keypoint_net
+
+        tick_kp_model = load_tick_keypoint_net(args.tick_keypoint_ckpt, device)
+        print(f"Loaded TickKeypointNet {args.tick_keypoint_ckpt}")
+
     pa_err, fl_err, mt_err = [], [], []
     rows = []
     n_scale = 0
@@ -181,6 +198,27 @@ def main() -> None:
             gray = full
 
         est = estimate_depth_scale(full)
+        mm_tick_kp: float | None = None
+        conf_tick_kp = 0.0
+        if tick_kp_model is not None:
+            try:
+                from muscle_arc.models.tick_keypoint import pitch_to_mm, predict_pitch_px
+
+                hh, ww = full.shape[:2]
+                strip = max(8, min(32, hh // 4, ww // 4))
+                region = full[:, :strip]
+                profile = region.max(axis=1).astype(np.float32)
+                profile_resized = cv2.resize(
+                    profile[None, :], (256, 1), interpolation=cv2.INTER_LINEAR
+                )[0]
+                pitch_px, conf = predict_pitch_px(tick_kp_model, profile_resized / 255.0, device)
+                if pitch_px is not None and conf > 0:
+                    scale = 256 / max(region.shape[0], 1)
+                    mm_candidate, _src = pitch_to_mm(pitch_px / scale)
+                    if 0.025 <= mm_candidate <= 0.16:
+                        mm_tick_kp, conf_tick_kp = mm_candidate, conf
+            except Exception as exc:  # noqa: BLE001
+                print(f"tick_keypoint eval fail {path.name}: {exc}")
         gt_mm = float(s["mm_per_pixel"]) if pd.notna(s.get("mm_per_pixel")) else None
         if args.scale_mode == "gt":
             if gt_mm is None or gt_mm <= 0:
@@ -202,6 +240,12 @@ def main() -> None:
             )
             if prefer_shape:
                 mm, scale_src = float(mm_shape), "osf_shape"
+                n_scale += 1
+            elif (
+                mm_tick_kp is not None
+                and conf_tick_kp > float(est.confidence if est.mm_per_pixel is not None else 0.0)
+            ):
+                mm, scale_src = float(mm_tick_kp), "tick_keypoint"
                 n_scale += 1
             elif est.mm_per_pixel is not None and float(est.confidence) >= 0.40:
                 mm, scale_src = float(est.mm_per_pixel), est.source
@@ -382,6 +426,13 @@ def main() -> None:
         print("GATE0_OK" if metrics["gate0_ok"] else "GATE0_FAIL")
 
     print("GATE2_OK" if metrics["gate2_ok"] else "GATE2_FAIL")
+    if not metrics["gate2_ok"] or int(metrics.get("n", 0)) < 10:
+        print(
+            "REMINDER (v9 lesson, 2026-09-05): a change that looks better on a small "
+            "local GT sample (n=2) scored WORSE on the real leaderboard (1.062 vs v8's "
+            "0.999) — n<10 sample MAE alone is not sufficient evidence to submit. "
+            "Do not submit on a soft/failing Gate2 result alone."
+        )
     if args.masks_from == "dl_track" and args.scale_mode == "gt":
         raise SystemExit(0 if metrics["gate0_ok"] else 1)
     raise SystemExit(0 if metrics["gate2_ok"] else 1)
