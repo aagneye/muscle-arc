@@ -18,6 +18,26 @@ _CM = re.compile(r"(\d{1,2})\s*[.,]?\s*(\d)?\s*c\s*m", re.I)
 _MM_LO, _MM_HI = 0.025, 0.16
 _MM_PRIOR = 0.09
 
+# Host-confirmed tick spacing (Kaggle forum, "Tick mark question", Paul
+# Ritsche, 2026-04-07/08): "The tickmarks at the bottom can be assumed to be
+# spaced 1 cm apart in both images... you can assume that they are spaced
+# 1 cm apart" — stated as a fact about the dataset, not a heuristic guess.
+# Used as an explicit high-confidence prior in tick_pitch-derived candidates
+# below, rather than treating 1cm vs 0.5cm tick spacing as ambiguous.
+TICK_SPACING_CM = 1.0
+_TICK_SPACING_HIGH_CONF = 0.92
+
+# Host also confirmed (same thread) that some training/test images have NO
+# scale reference at all: "there is no 'valid' way of estimating distance"
+# for images without a ruler/scale marker. These are specifically the
+# images rescaled to exactly 512x512 for training (host: "The resolution of
+# 512x512 is because they have been rescaled to that specific size"). This
+# is a literal encoding of that fact, not a new detection heuristic — used
+# to flag such rows so callers can route them to a distinct fallback
+# instead of letting a spurious low-confidence tick/OCR read pollute the
+# scale_fusion jury.
+NO_SCALE_RESOLUTION = (512, 512)
+
 
 @dataclass
 class DepthScaleResult:
@@ -28,6 +48,7 @@ class DepthScaleResult:
     source: str
     confidence: float
     text: str = ""
+    no_scale_recoverable: bool = False
 
     def as_dict(self) -> dict:
         d = asdict(self)
@@ -302,6 +323,13 @@ def estimate_depth_scale(img: np.ndarray) -> DepthScaleResult:
                 score = abs(mm - mm_ocr) / max(mm_ocr, 1e-6)
             else:
                 score = abs(mm - _MM_PRIOR) / max(conf, 1e-3)
+            # Host-confirmed prior (forum, 2026-04-07/08): bottom ticks are
+            # exactly TICK_SPACING_CM=1cm apart, not an ambiguous 0.5cm vs
+            # 1cm guess. Give the 1cm hypothesis a small score bonus so it
+            # wins ties against the 0.5cm candidate when both are otherwise
+            # plausible, instead of scoring them as equally likely.
+            if abs(tick_mm - TICK_SPACING_CM * 10.0) < 1e-6:
+                score = max(0.0, score - 0.03)
             cands.append((score, mm, tick_mm, f"ticks_{tick_mm:g}mm"))
         mm25 = 2.5 / pitch
         if (not faint) and conf >= 0.85 and 0.04 <= mm25 <= 0.09:
@@ -313,12 +341,16 @@ def estimate_depth_scale(img: np.ndarray) -> DepthScaleResult:
         if not cands:
             continue
         cands.sort(key=lambda t: t[0])
-        score, mm, _tick_mm, src = cands[0]
+        score, mm, tick_mm, src = cands[0]
         fused = mm_ocr is not None and score <= 0.15
         out_conf = float(conf) * (0.85 if faint else 1.0)
         if fused:
             out_conf = min(0.98, max(out_conf, 0.90))
             src = f"ocr+{src}"
+        elif abs(tick_mm - TICK_SPACING_CM * 10.0) < 1e-6:
+            # Host-confirmed 1cm spacing, no OCR to fuse against: still a
+            # high-confidence read on its own, not just "best of a guess".
+            out_conf = min(_TICK_SPACING_HIGH_CONF, max(out_conf, 0.80))
         if out_conf < 0.40:
             continue
         cand = DepthScaleResult(
@@ -348,9 +380,30 @@ def estimate_depth_scale(img: np.ndarray) -> DepthScaleResult:
             text=text.strip(),
         )
 
+    h, w = gray.shape[:2]
+
+    # Host confirmed (forum, 2026-04-08): images rescaled to exactly 512x512
+    # have no valid way to recover scale ("there is no 'valid' way of
+    # estimating distance in these images") — once OCR and confident ticks
+    # have both failed, do not let the OSF-shape lookup or the blind
+    # depth-hypothesis grid search below manufacture a guessed number for
+    # these specific rows. Flag them so callers can route to a distinct
+    # fallback policy instead of silently polluting the scale_fusion jury
+    # with a confident-looking but physically ungrounded value.
+    if (h, w) == NO_SCALE_RESOLUTION and (best_tick is None or best_tick.confidence < 0.85):
+        return DepthScaleResult(
+            mm_per_pixel=None,
+            px_per_cm=None,
+            depth_cm=depth,
+            sector=sector,
+            source="none",
+            confidence=0.0,
+            text=text.strip(),
+            no_scale_recoverable=True,
+        )
+
     # Cropped / no chrome: OSF shape→scale beats raw ticks (ticks_5mm false
     # positives were ~0.60× on OSF and blew Gate2b from 0.41 → 0.75).
-    h, w = gray.shape[:2]
     mm_shape = osf_shape_scale_lookup(h, w)
     if mm_shape is not None and _MM_LO <= float(mm_shape) <= _MM_HI:
         if kind == "cropped" or best_tick is None or float(best_tick.confidence) < 0.85:
