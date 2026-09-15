@@ -173,6 +173,8 @@ def main() -> None:
     patience = int(train_cfg.get("early_stop_patience", 12))
     bad = 0
     bce_w = float(train_cfg.get("bce_weight", 0.2))
+    fasc_loss = str(train_cfg.get("fasc_loss", "tversky"))
+    skel_recall_weight = float(train_cfg.get("skel_recall_weight", 0.3))
 
     for epoch in range(1, int(train_cfg["epochs"]) + 1):
         model.train()
@@ -182,7 +184,13 @@ def main() -> None:
             opt.zero_grad(set_to_none=True)
             with torch.cuda.amp.autocast(enabled=scaler.is_enabled()):
                 out = model(batch["image"])
-                loss, stats = sof_total_loss(out, batch, bce_weight=bce_w)
+                loss, stats = sof_total_loss(
+                    out,
+                    batch,
+                    bce_weight=bce_w,
+                    fasc_loss=fasc_loss,
+                    skel_recall_weight=skel_recall_weight,
+                )
             scaler.scale(loss).backward()
             scaler.step(opt)
             scaler.update()
@@ -194,7 +202,13 @@ def main() -> None:
             for batch in vloader:
                 batch = {k: (v.to(device) if torch.is_tensor(v) else v) for k, v in batch.items()}
                 out = model(batch["image"])
-                loss, stats = sof_total_loss(out, batch, bce_weight=bce_w)
+                loss, stats = sof_total_loss(
+                    out,
+                    batch,
+                    bce_weight=bce_w,
+                    fasc_loss=fasc_loss,
+                    skel_recall_weight=skel_recall_weight,
+                )
                 vlosses.append(stats["total"])
         tr = float(np.mean(losses)) if losses else 0.0
         va = float(np.mean(vlosses)) if vlosses else 0.0

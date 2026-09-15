@@ -33,6 +33,13 @@ train:
   split_dir: experiments/splits
   checkpoint_dir: experiments/checkpoints_sof
   bce_weight: 0.2
+  # "tversky" (default, existing behaviour) or "tversky_skelrecall" to add
+  # SkeletonRecallLoss (arXiv:2404.03010) on the fascicle branch -- targets
+  # thin/fragmented fascicle strand connectivity specifically. Only switch
+  # after comparing val Dice/connectivity + downstream Gate2 PA/FL MAE
+  # against the "tversky" baseline.
+  fasc_loss: tversky
+  skel_recall_weight: 0.3
   gate1_lite: true
   gate1_lite_max_samples: 150
 
