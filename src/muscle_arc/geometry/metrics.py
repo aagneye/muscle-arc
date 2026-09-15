@@ -511,6 +511,26 @@ def _radon_orientation(
     return out
 
 
+def fascicle_fragments(
+    fasc_mask: np.ndarray,
+    fasc_prob: np.ndarray | None = None,
+    gray: np.ndarray | None = None,
+    apo_mask: np.ndarray | None = None,
+) -> list[tuple[np.ndarray, np.ndarray, float]]:
+    """Public accessor for deduped fascicle line fragments.
+
+    Thin wrapper over the private ``_fascicle_lines`` pipeline (mask
+    components -> dedupe -> Hough/Radon enrichment fallback), exposed so
+    other geometry modules (e.g. ``geometry/protocol.py``) can build
+    alternative PA/FL aggregation rules on the same fragment set without
+    duplicating fragment extraction or reaching into private helpers.
+
+    Returns a list of (point, direction, length_px) tuples, one per fitted
+    fascicle fragment, direction oriented downward (dy >= 0).
+    """
+    return _fascicle_lines(fasc_mask, fasc_prob=fasc_prob, gray=gray, apo_mask=apo_mask)
+
+
 def _fascicle_lines(
     fasc_mask: np.ndarray,
     fasc_prob: np.ndarray | None = None,
