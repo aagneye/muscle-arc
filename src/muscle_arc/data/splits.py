@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import re
 from pathlib import Path
@@ -9,6 +10,50 @@ from pathlib import Path
 import numpy as np
 
 _TRAIL_NUM = re.compile(r"^(.*?)(\d+)$")
+
+
+def _pair_hash(img_path: Path, mask_path: Path) -> str:
+    """MD5 over raw (image_bytes || mask_bytes) — exact-duplicate fingerprint."""
+    h = hashlib.md5()
+    h.update(img_path.read_bytes())
+    h.update(mask_path.read_bytes())
+    return h.hexdigest()
+
+
+def dedupe_pairs(
+    pairs: list[tuple[Path, Path]],
+) -> tuple[list[tuple[Path, Path]], int, dict[str, list[str]]]:
+    """Drop exact-duplicate (image, mask) pairs by content hash.
+
+    Host confirmed (Kaggle forum, "670 exact duplicate image-mask pairs in
+    the fascicle training set", 2026-09-09) that the fascicle training set
+    contains unintentional exact duplicates, and recommended removing one
+    copy from each duplicate group before creating splits rather than
+    keeping both — otherwise identical samples can land in both train and
+    val, inflating internal validation metrics without any real skill gain.
+
+    Keeps the first pair (by stem-sorted input order) in each duplicate
+    group; drops the rest.
+
+    Returns:
+        (deduped_pairs, n_dropped, dup_groups) where dup_groups maps
+        content-hash -> list of dropped stems (for manifest reporting /
+        auditing which files were considered duplicates of what).
+    """
+    seen: dict[str, str] = {}  # hash -> stem of kept representative
+    dup_groups: dict[str, list[str]] = {}
+    kept: list[tuple[Path, Path]] = []
+    n_dropped = 0
+    for img_path, mask_path in pairs:
+        stem = img_path.stem
+        h = _pair_hash(img_path, mask_path)
+        if h in seen:
+            dup_groups.setdefault(seen[h], []).append(stem)
+            n_dropped += 1
+            continue
+        seen[h] = stem
+        kept.append((img_path, mask_path))
+    return kept, n_dropped, dup_groups
 
 
 def parse_stem(stem: str) -> tuple[str, int] | None:
