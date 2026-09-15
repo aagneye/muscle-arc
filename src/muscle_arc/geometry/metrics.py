@@ -89,7 +89,7 @@ def _fit_line_l2(mask: np.ndarray, min_pts: int = 15) -> tuple[np.ndarray, np.nd
     if len(xs) < min_pts:
         return None
     pts = np.column_stack([xs, ys]).astype(np.float32)
-    vx, vy, x0, y0 = cv2.fitLine(pts, cv2.DIST_L2, 0, 0.01, 0.01)
+    vx, vy, x0, y0 = cv2.fitLine(pts, cv2.DIST_L2, 0, 0.01, 0.01).ravel()
     direction = _normalize(np.array([float(vx), float(vy)], dtype=np.float64))
     if direction is None:
         return None
@@ -826,6 +826,34 @@ def fascicle_length_px(
     return float("nan")
 
 
+def _estimate_host_v1(
+    apo_mask: np.ndarray,
+    fasc_mask: np.ndarray,
+    mm_per_pixel: float,
+    fasc_prob: np.ndarray | None,
+    gray: np.ndarray | None,
+) -> tuple[float, float, float] | None:
+    """host_v1 geometry protocol (geometry/protocol.py). Returns (pa, fl_mm,
+    mt_mm) or None if surfaces cannot be extracted (caller should fall back
+    to legacy in that case rather than emit all-NaN)."""
+    from muscle_arc.geometry.protocol import (
+        fl_host_protocol,
+        mt_host_protocol,
+        pa_host_protocol,
+    )
+    from muscle_arc.geometry.surfaces import extract_apo_surfaces
+
+    surfaces = extract_apo_surfaces(apo_mask, fasc_mask=fasc_mask, degree=2)
+    if surfaces is None:
+        return None
+
+    mt_mm = mt_host_protocol(surfaces, mm_per_pixel=mm_per_pixel)
+    fragments = fascicle_fragments(fasc_mask, fasc_prob=fasc_prob, gray=gray, apo_mask=apo_mask)
+    pa = pa_host_protocol(fragments, surfaces)
+    fl_mm = fl_host_protocol(fragments, surfaces, mm_per_pixel=mm_per_pixel)
+    return pa, fl_mm, mt_mm
+
+
 def estimate_architecture(
     apo_mask: np.ndarray,
     fasc_mask: np.ndarray,
@@ -833,7 +861,19 @@ def estimate_architecture(
     defaults: tuple[float, float, float] = (15.0, 70.0, 20.0),
     fasc_prob: np.ndarray | None = None,
     gray: np.ndarray | None = None,
+    protocol: str = "legacy",
 ) -> ArchitectureParams:
+    """Estimate PA/FL/MT from apo + fascicle masks.
+
+    ``protocol`` selects the measurement convention:
+      - "legacy" (default): existing median-of-many-samples geometry below —
+        unchanged behaviour, safe default until host_v1 is validated.
+      - "host_v1": geometry/protocol.py, matching the host's manual GT
+        method (mean of 3 vertical MT lines; mean of 3 least-extrapolated
+        FL fragments; mean of 3 PA angles at fragment insertions). Falls
+        back to "legacy" per-parameter (not all-NaN) if apo surfaces cannot
+        be extracted, since host_v1 requires a valid ApoSurfaces fit.
+    """
     mt_px = muscle_thickness_px(apo_mask, fasc_mask=fasc_mask, mm_per_pixel=mm_per_pixel)
     pa = pennation_angle_deg(
         fasc_mask, apo_mask, fasc_prob=fasc_prob, gray=gray, mm_per_pixel=mm_per_pixel
@@ -847,10 +887,25 @@ def estimate_architecture(
         mt_px=mt_px if np.isfinite(mt_px) else None,
         mm_per_pixel=mm_per_pixel,
     )
+    pa_legacy_deg = pa
+    fl_legacy_mm = fl_px * mm_per_pixel if np.isfinite(fl_px) else float("nan")
+    mt_legacy_mm = mt_px * mm_per_pixel if np.isfinite(mt_px) else float("nan")
 
-    pa_deg = defaults[0] if not np.isfinite(pa) else pa
-    fl_mm = defaults[1] if not np.isfinite(fl_px) else fl_px * mm_per_pixel
-    mt_mm = defaults[2] if not np.isfinite(mt_px) else mt_px * mm_per_pixel
+    pa_deg, fl_mm, mt_mm = pa_legacy_deg, fl_legacy_mm, mt_legacy_mm
+    if protocol == "host_v1":
+        host = _estimate_host_v1(apo_mask, fasc_mask, mm_per_pixel, fasc_prob, gray)
+        if host is not None:
+            pa_h, fl_h, mt_h = host
+            # Per-parameter fallback to legacy value if host_v1 could not
+            # resolve that specific parameter (e.g. too few fragments for
+            # PA/FL), rather than falling back to the generic default.
+            pa_deg = pa_h if np.isfinite(pa_h) else pa_legacy_deg
+            fl_mm = fl_h if np.isfinite(fl_h) else fl_legacy_mm
+            mt_mm = mt_h if np.isfinite(mt_h) else mt_legacy_mm
+
+    pa_deg = defaults[0] if not np.isfinite(pa_deg) else pa_deg
+    fl_mm = defaults[1] if not np.isfinite(fl_mm) else fl_mm
+    mt_mm = defaults[2] if not np.isfinite(mt_mm) else mt_mm
     return ArchitectureParams(pa_deg=float(pa_deg), fl_mm=float(fl_mm), mt_mm=float(mt_mm))
 
 
