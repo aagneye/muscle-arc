@@ -212,6 +212,15 @@ def _tick_keypoint_estimate(
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=Path("configs/default.yaml"))
+    parser.add_argument(
+        "--geometry-protocol",
+        type=str,
+        default=None,
+        choices=["legacy", "host_v1"],
+        help="PA/FL/MT measurement convention (default: configs/*.yaml geometry.protocol, "
+        "itself 'legacy' unless changed). 'host_v1' matches the host's manual GT method; "
+        "only adopt after Gate2 confirms it improves per-parameter MAE vs legacy.",
+    )
     parser.add_argument("--apo-ckpt", type=Path, default=Path("experiments/checkpoints/apo_best.pt"))
     parser.add_argument("--fasc-ckpt", type=Path, default=Path("experiments/checkpoints/fasc_best.pt"))
     parser.add_argument("--out", type=Path, default=Path("submissions/submission.csv"))
@@ -347,7 +356,9 @@ def main() -> None:
         # Official doCalculations is available via --geom official; OSF Gate2b
         # ≤0.42 is currently met by our geometry (official ~0.78 on pred scale).
         geom_mode = "ours"
+    geometry_protocol = args.geometry_protocol or cfg.get("geometry", {}).get("protocol", "legacy")
     print(f"Geometry mode: {geom_mode}")
+    print(f"Geometry protocol: {geometry_protocol}")
     infer = cfg["infer"]
     img_size = int(cfg["img_size"])
     # Split thresholds (DL_Track defaults) unless --thr forces shared
@@ -579,6 +590,18 @@ def main() -> None:
                 mt_px=mt_px if np.isfinite(mt_px) else None,
                 mm_per_pixel=prov_mm,
             )
+            if geometry_protocol == "host_v1" and prov_mm is not None:
+                from muscle_arc.geometry.metrics import estimate_architecture_host_v1
+
+                host = estimate_architecture_host_v1(apo, fasc, prov_mm, fasc_prob, gray)
+                if host is not None:
+                    pa_h, fl_mm_h, mt_mm_h = host
+                    if np.isfinite(pa_h):
+                        pa = pa_h
+                    if np.isfinite(mt_mm_h):
+                        mt_px = mt_mm_h / prov_mm
+                    if np.isfinite(fl_mm_h):
+                        fl_px = fl_mm_h / prov_mm
             # Trig fallback only when PA is stable (matches fascicle_length_px guard)
             if (
                 (not np.isfinite(fl_px))

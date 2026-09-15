@@ -854,6 +854,23 @@ def _estimate_host_v1(
     return pa, fl_mm, mt_mm
 
 
+def estimate_architecture_host_v1(
+    apo_mask: np.ndarray,
+    fasc_mask: np.ndarray,
+    mm_per_pixel: float,
+    fasc_prob: np.ndarray | None = None,
+    gray: np.ndarray | None = None,
+) -> tuple[float, float, float] | None:
+    """Public accessor for the host_v1 protocol values (pa_deg, fl_mm, mt_mm),
+    or None if apo surfaces could not be extracted. See
+    ``estimate_architecture(..., protocol="host_v1")`` for the version with
+    automatic per-parameter fallback to legacy/defaults; this raw accessor
+    is for callers (e.g. calibrate_predict.py) that want to apply the
+    host_v1 override only when it actually resolves, in their own
+    px-vs-mm-space bookkeeping."""
+    return _estimate_host_v1(apo_mask, fasc_mask, mm_per_pixel, fasc_prob, gray)
+
+
 def estimate_architecture(
     apo_mask: np.ndarray,
     fasc_mask: np.ndarray,

@@ -160,6 +160,7 @@ def run_folder_inference(
     clip: dict,
     tta_hflip: bool = True,
     mask_percentile: float = 75.0,
+    geometry_protocol: str = "legacy",
 ) -> pd.DataFrame:
     apo_model.eval()
     fasc_model.eval()
@@ -176,7 +177,12 @@ def run_folder_inference(
         )
         fasc = (fasc_prob > (mask_percentile if mask_percentile <= 1 else 0.30)).astype(np.uint8)
         est = estimate_architecture(
-            apo, fasc, mm_per_pixel=mm_per_pixel, fasc_prob=fasc_prob, gray=gray
+            apo,
+            fasc,
+            mm_per_pixel=mm_per_pixel,
+            fasc_prob=fasc_prob,
+            gray=gray,
+            protocol=geometry_protocol,
         )
         est = clip_params(
             est,

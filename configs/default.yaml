@@ -52,3 +52,11 @@ infer:
   temporal_window: 5
   multiscale_tta: true
   frangi_enhance_fasc: false
+
+geometry:
+  # "legacy" (default): existing median-of-many-samples PA/FL/MT geometry.
+  # "host_v1": matches the host's manual GT protocol (mean of 3 vertical MT
+  # lines / 3 least-extrapolated FL fragments / 3 PA angles at fragment
+  # insertions — geometry/protocol.py). Switch only after Gate2 (GT scale)
+  # confirms host_v1 improves per-parameter MAE vs legacy on OSF expert GT.
+  protocol: legacy

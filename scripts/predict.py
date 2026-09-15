@@ -88,6 +88,7 @@ def main() -> None:
     fasc_model = load_model(args.fasc_ckpt, cfg["model"], device)
 
     infer_cfg = cfg["infer"]
+    geometry_protocol = cfg.get("geometry", {}).get("protocol", "legacy")
     pred = run_folder_inference(
         apo_model=apo_model,
         fasc_model=fasc_model,
@@ -98,6 +99,7 @@ def main() -> None:
         clip=infer_cfg["clip"],
         tta_hflip=bool(infer_cfg.get("tta_hflip", True)),
         mask_percentile=float(infer_cfg.get("mask_percentile", 75)),
+        geometry_protocol=geometry_protocol,
     )
 
     out_df = pred.sort_values("image_id").reset_index(drop=True)
