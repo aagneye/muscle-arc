@@ -12,6 +12,7 @@ from muscle_arc.data.dataset import pair_images_masks
 from muscle_arc.data.paths import DataPaths
 from muscle_arc.data.splits import (
     assign_groups_to_splits,
+    dedupe_pairs,
     group_ids_for_stems,
     write_split_manifest,
 )
@@ -36,6 +37,7 @@ def main() -> None:
         ("fasc", paths.fasc_imgs, paths.fasc_masks),
     ):
         pairs = pair_images_masks(img_d, mask_d)
+        pairs, n_duplicates_dropped, dup_groups = dedupe_pairs(pairs)
         stems = [p[0].stem for p in pairs]
         splits = assign_groups_to_splits(
             stems,
@@ -62,13 +64,16 @@ def main() -> None:
                 "val_frac": args.val_frac,
                 "holdout_frac": args.holdout_frac,
                 "n_pairs": len(pairs),
+                "n_duplicates_dropped": n_duplicates_dropped,
+                "n_duplicate_groups": len(dup_groups),
             },
         )
         print(
             f"{branch}: wrote {path} "
             f"train={len(splits['train'])} val={len(splits['val'])} "
             f"holdout={len(splits['holdout'])} groups="
-            f"{len(group_ids_for_stems(stems))}"
+            f"{len(group_ids_for_stems(stems))} "
+            f"n_duplicates_dropped={n_duplicates_dropped}"
         )
 
 
