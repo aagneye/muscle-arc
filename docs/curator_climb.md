@@ -45,6 +45,54 @@ Segmentation stays as apo/fasc U-Nets (`grow` / `grow_v2`) — train those when 
    heuristic-only baseline on OSF Gate2b before enabling by default.
 8. Infer candidate; hard Gate2+Gate3; SUBMIT or HOLD.
 
+## Gate2 protocol A/B result (2026-09-16)
+
+Ran `eval_osf_pipeline.py --masks-from dl_track --scale-mode gt --geom ours`
+on all 35 real OSF expert-GT images (DL_Track VGG16 pretrained masks,
+GT scale — isolates geometry from scale error):
+
+| Protocol   | PA MAE | FL MAE  | MT MAE  | UMUD  |
+|------------|--------|---------|---------|-------|
+| `legacy`   | 1.661° | 7.04 mm | 1.46 mm | **0.450** |
+| `host_v1`  | 1.919° | 9.87 mm | 1.55 mm | 0.553 |
+
+`host_v1` (mean-of-3 host-protocol convention) is **worse on every
+parameter** vs `legacy` (median-of-many, DL_Track-style extrapolation) —
+23% worse UMUD overall, FL MAE 40% worse. Likely cause: mean-of-3 is far
+less robust to imperfect (non-GT) masks than the legacy path's
+many-sample median + Hough/Radon fallback design. **Decision: keep
+`legacy` as the default.** `host_v1` code stays available behind
+`--geometry-protocol host_v1` for future reference/debugging but is not
+adopted. Full JSON: `experiments/gate2_legacy.json`,
+`experiments/gate2_host_v1.json`.
+
+## Gate2b tick-keypoint validation (2026-09-16) — INCONCLUSIVE on OSF
+
+Ran `eval_osf_pipeline.py --scale-mode pred` with and without
+`--tick-keypoint-ckpt experiments/checkpoints_tick/tick_keypoint.pt`.
+Results were **byte-identical** (UMUD 0.484 both runs) — not because the
+flag is broken, but because on 5/6 sampled OSF images the model's own
+`predict_pitch_px` correctly returns `(None, 0.0)`: these OSF benchmark
+images don't have visible ruler/tick marks in the border-strip region the
+model looks at (they're cropped B-mode frames, not console screenshots
+with chrome). With zero confidence, the tick-keypoint candidate never
+wins the `scale_fusion` jury vote against `osf_shape` (0.88 conf), which
+is correct behavior, not a bug — verified by direct `predict_pitch_px`
+calls returning `pitch_px=None` for images 1-5 and a low-confidence
+`(20.0px, 0.43)` for image 6.
+
+**Conclusion: OSF is not a representative test bed for TickKeypointNet**
+(it targets console/ruler-chrome images, which OSF's expert-analysed set
+mostly lacks) — Gate2b as specified cannot validate this specific model on
+this specific dataset. Per the v9-lesson discipline, this means
+`--tick-keypoint-ckpt` **remains NOT validated and NOT enabled by
+default** — the absence of evidence-of-improvement is not evidence of
+no-improvement, but the hard gate requires proof of improvement before
+adoption, and that proof isn't obtainable from OSF alone. Would need
+either: (a) the actual Kaggle test set (which does have console/ruler
+chrome per earlier TIFF audits) run through Gate2b-equivalent evaluation
+with sample GT, or (b) a different benchmark with ruler chrome present.
+
 ## Do not
 
 - Global OSF residual mm blend (v9 → 1.06).
