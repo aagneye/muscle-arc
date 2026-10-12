@@ -52,77 +52,72 @@ def load_model(ckpt: Path, model_cfg: dict, device: torch.device) -> torch.nn.Mo
     return model
 
 
-def sequence_groups(paths: list[Path]) -> list[list[int]]:
-    """Group acquisition runs: prefer contiguous numeric stem runs of length ~5.
+def _frame_signature(gray: np.ndarray, size: int = 96) -> np.ndarray:
+    """Central-crop thumbnail used to decide whether two frames come from one clip."""
+    small = cv2.resize(gray, (size, size), interpolation=cv2.INTER_AREA).astype(np.float32)
+    h, w = small.shape
+    return small[h // 4 : 3 * h // 4, w // 4 : 3 * w // 4]
 
-    Host test set has ~27 runs of exactly 5 frames that share scale. Falls back to
-    contiguous same-(H,W) buckets when stems are not numeric sequences.
+
+def sequence_groups(
+    paths: list[Path],
+    *,
+    max_run: int = 5,
+    mad_thresh: float = 4.0,
+) -> list[list[int]]:
+    """Group video-clip frames so temporal smoothing only mixes frames of one clip.
+
+    Two adjacent files belong to the same run only when all of the following hold:
+    consecutive numeric stems with the same prefix, identical (H, W), and a small
+    mean absolute difference between their central thumbnails (``mad_thresh``;
+    adjacent frames of one cine-loop measure ~0.5-2 grey levels, unrelated images
+    ~30-60). Runs are capped at ``max_run`` frames (host: clips are 5 frames).
+    Every other image is its own singleton group.
+
+    The previous implementation chained every consecutive same-shape stem with no
+    cap and then bucketed leftovers by shape alone, which on the 309-image test set
+    produced groups of 35, 40, 40 and 164 images and smoothed predictions across
+    unrelated subjects.
     """
     import re
 
-    stems = [p.stem for p in paths]
     shapes: list[tuple[int, int] | None] = []
+    sigs: list[np.ndarray | None] = []
     for p in paths:
         im = cv2.imread(str(p), cv2.IMREAD_GRAYSCALE)
-        shapes.append(None if im is None else (int(im.shape[0]), int(im.shape[1])))
+        if im is None:
+            shapes.append(None)
+            sigs.append(None)
+        else:
+            shapes.append((int(im.shape[0]), int(im.shape[1])))
+            sigs.append(_frame_signature(im))
 
-    # Parse trailing digits → (prefix, frame_idx)
     parsed: list[tuple[str, int] | None] = []
-    for s in stems:
-        m = re.match(r"^(.*?)(\d+)$", s)
-        if m:
-            parsed.append((m.group(1), int(m.group(2))))
-        else:
-            parsed.append(None)
+    for p in paths:
+        m = re.match(r"^(.*?)(\d+)$", p.stem)
+        parsed.append((m.group(1), int(m.group(2))) if m else None)
 
-    used = [False] * len(paths)
+    def _linked(a: int, b: int) -> bool:
+        pa, pb = parsed[a], parsed[b]
+        if pa is None or pb is None or pa[0] != pb[0] or pb[1] != pa[1] + 1:
+            return False
+        if shapes[a] is None or shapes[b] is None or shapes[a] != shapes[b]:
+            return False
+        sa, sb = sigs[a], sigs[b]
+        if sa is None or sb is None:
+            return False
+        return float(np.abs(sa - sb).mean()) < mad_thresh
+
     groups: list[list[int]] = []
-
-    # Pass 1: contiguous indices with same prefix and consecutive frame numbers
     i = 0
     while i < len(paths):
-        if used[i] or parsed[i] is None:
-            i += 1
-            continue
-        prefix, start_n = parsed[i]
         run = [i]
         j = i + 1
-        expect = start_n + 1
-        while j < len(paths) and not used[j] and parsed[j] is not None:
-            pref_j, n_j = parsed[j]
-            if pref_j != prefix or n_j != expect:
-                break
-            # Prefer same shape within a run when readable
-            if shapes[i] is not None and shapes[j] is not None and shapes[j] != shapes[i]:
-                break
-            run.append(j)
-            expect += 1
-            j += 1
-        if len(run) >= 2:
-            for k in run:
-                used[k] = True
-            groups.append(run)
-            i = j
-        else:
-            i += 1
-
-    # Pass 2: leftover contiguous same-shape runs (size capped near 5)
-    i = 0
-    while i < len(paths):
-        if used[i]:
-            i += 1
-            continue
-        run = [i]
-        j = i + 1
-        while j < len(paths) and not used[j] and shapes[j] == shapes[i] and len(run) < 5:
+        while j < len(paths) and len(run) < max_run and _linked(j - 1, j):
             run.append(j)
             j += 1
-        for k in run:
-            used[k] = True
         groups.append(run)
         i = j
-
-    groups.sort(key=lambda g: g[0])
     return groups
 
 
