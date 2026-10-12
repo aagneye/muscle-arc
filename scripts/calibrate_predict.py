@@ -33,7 +33,7 @@ from muscle_arc.geometry.depth_scale import (
     share_scales_in_groups,
 )
 from muscle_arc.geometry.scale_fusion import ScaleCandidate, confidence_weighted_vote
-from muscle_arc.geometry.sector_crop import mask_chrome, sector_crop
+from muscle_arc.geometry.sector_crop import SectorCrop, mask_chrome, sector_crop
 from muscle_arc.geometry.residual_scale import (
     apply_residual_mm,
     load_models as load_residual_models,
@@ -261,6 +261,16 @@ def main() -> None:
         help="Zero console chrome in-place (no crop) before masks; keeps full-frame coords",
     )
     parser.add_argument(
+        "--crop-table",
+        type=Path,
+        default=None,
+        help=(
+            "CSV with per-image exact sector boxes (image_id,l,t,r,b) from "
+            "build_exact_scale_table.py. When given, each image is cropped to its box "
+            "before segmentation and geometry (overrides --sector-crop/--chrome-mask)."
+        ),
+    )
+    parser.add_argument(
         "--live-depth-scale",
         type=str,
         default="true",
@@ -405,6 +415,16 @@ def main() -> None:
         tick_kp_model = load_tick_keypoint_net(args.tick_keypoint_ckpt, device)
         print(f"Loaded TickKeypointNet {args.tick_keypoint_ckpt}")
 
+    crop_boxes: dict[str, tuple[int, int, int, int]] = {}
+    if args.crop_table is not None and args.crop_table.exists():
+        ct = pd.read_csv(args.crop_table)
+        for _, r in ct.iterrows():
+            if {"l", "t", "r", "b"} <= set(ct.columns) and pd.notna(r["l"]):
+                box = (int(r["l"]), int(r["t"]), int(r["r"]), int(r["b"]))
+                crop_boxes[str(r["image_id"])] = box
+                crop_boxes[Path(str(r["image_id"])).stem] = box
+        print(f"Exact crop boxes: {len(crop_boxes) // 2}")
+
     test_paths = list_images(paths.test_images)
     groups = sequence_groups(test_paths)
     rows = []
@@ -412,7 +432,17 @@ def main() -> None:
     live_conf: dict[str, float] = {}
     for p in test_paths:
         full = read_gray(p)
-        if args.sector_crop == "false":
+        fh, fw = full.shape[:2]
+        exact_box = crop_boxes.get(p.name, crop_boxes.get(p.stem))
+        if exact_box is not None:
+            x0, y0, x1, y1 = exact_box
+            x0, y0 = max(0, x0), max(0, y0)
+            x1, y1 = min(fw, x1), min(fh, y1)
+            if x1 <= x0 + 40 or y1 <= y0 + 40:
+                x0, y0, x1, y1 = 0, 0, fw, fh
+            gray = full[y0:y1, x0:x1]
+            crop_info = SectorCrop(gray, (x0, y0, x1 - x0, y1 - y0), "exact_crop", 0.0, True)
+        elif args.sector_crop == "false":
             crop_info = None
             gray = full
         elif args.sector_crop == "true":
@@ -422,13 +452,12 @@ def main() -> None:
             crop_info = sector_crop(full, force=False)
             gray = crop_info.crop if (crop_info is not None and crop_info.applied) else full
         # Optional: mask chrome without cropping (default on; preferred with DL_Track)
-        if args.chrome_mask == "true" and args.sector_crop == "false":
+        if exact_box is None and args.chrome_mask == "true" and args.sector_crop == "false":
             gray, crop_info = mask_chrome(full)
-        elif args.chrome_mask == "true" and args.sector_crop == "auto":
+        elif exact_box is None and args.chrome_mask == "true" and args.sector_crop == "auto":
             # auto crop off for win path: chrome-mask only
             gray, crop_info = mask_chrome(full)
         h, w = gray.shape[:2]
-        fh, fw = full.shape[:2]
 
         # Live depth scale on FULL frame (chrome/text outside sector)
         prov_mm: float | None = None
@@ -549,15 +578,18 @@ def main() -> None:
             )
             # Geometry on full-frame coords; masks are already HxW of gray
             # (chrome-mask keeps HxW == full). Resize if sector-crop shrank.
-            apo_g, fasc_g = apo, fasc
-            if (h, w) != (fh, fw):
+            # With an exact crop box the geometry runs in crop coordinates
+            # (scale is unchanged by cropping), so no resize is needed.
+            apo_g, fasc_g, geom_img = apo, fasc, gray
+            if exact_box is None and (h, w) != (fh, fw):
                 apo_g = cv2.resize(apo, (fw, fh), interpolation=cv2.INTER_NEAREST)
                 fasc_g = cv2.resize(fasc, (fw, fh), interpolation=cv2.INTER_NEAREST)
+                geom_img = full
             try:
                 pa, fl_mm_direct, mt_mm_direct = official_metrics(
                     apo_g,
                     fasc_g,
-                    full,
+                    geom_img,
                     mm_per_pixel=mm_geo,
                     apo_thr=apo_thr,
                     fasc_thr=fasc_thr,
