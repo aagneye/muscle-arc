@@ -39,13 +39,26 @@ not state a number this review says so rather than guessing.
 
 ### 2.1 Cronin, Finni, Seynnes 2020 (arXiv:2009.04790), "Fully automated analysis of muscle architecture from B-mode ultrasound images with deep learning"
 
-- Two U-Nets (one for fascicle fragments, one for aponeuroses), trained on labelled
-  longitudinal images of superficial lower-limb muscles. Inference 0.7 s/image on GPU.
-- Reported agreement: FL mean difference 1.1 mm vs SMA and 2.1 mm vs manual; PA within 1°;
-  MT < 0.2 mm; video ICC vs UltraTrack mean 0.73.
-- First open release of the geometry that every later version keeps: linear apo fits,
-  straight-line fascicle extrapolation to both apos, PA against the deep apo, MT at the
-  image centre.
+- Code github.com/njcronin/DL_Track (Apache-2.0, superseded). The host told participants this
+  preprint is the public stand-in for the closed-access 2024 paper.
+- Data: about 570 apo and 310 fascicle frames from videos and stills, four devices, GM, GL,
+  VL, TA (soleus in examples); resized to 512x512; 90/10 split; heavy elastic-deformation
+  augmentation; one researcher traced every apo or every visible fascicle fragment (1 to 20
+  per image) in Fiji.
+- Network: plain 23-layer U-Net per branch, BCE, Adam, batch 1, early stop at 18 to 21
+  epochs, under 1 h per model on an RTX 2070. 0.7 s/image GPU, 4.6 s CPU.
+- Geometry in `Inference_Single_Image.ipynb`: apo threshold 0.2, fascicle 0.10, fascicle
+  contour >= 40 px, min apo separation 60 px, pennation gate 14 to 40°; apo edges smoothed
+  (Savitzky-Golay 81, 2) and fitted with an order-2 polynomial (order 1 in later versions);
+  fascicle lower edge fitted with a straight line and extrapolated; PA from the deep-apo slope
+  over 50 px at the intersection; FL = straight-line distance between intersections; MT =
+  shortest distance in the central third; median over fragments compared with the mean of
+  three raters.
+- Results on 35 unseen images: vs SMA FL 1.1 mm, PA 1.0°, MT 0.2 mm; vs the three-author
+  average FL 2.1 mm, PA 0.1°, MT 0.1 mm; peak FL error about 12 mm; video ICC vs UltraTrack
+  0.73 (0.45 to 0.98), mean absolute FL difference 2.9 to 6.0 mm per task.
+- Author-stated limits: frames processed independently; "can easily be fooled ... by very
+  subtle changes in pixel values"; averaging many fascicles adds variability.
 
 ### 2.2 Ritsche, Faude, Franchi, Finni, Seynnes, Cronin 2023 (CISS 8(2):088) and Ritsche et al. 2024 (Ultrasound Med Biol 50(2):258-267, doi 10.1016/j.ultrasmedbio.2023.10.011), "DL_Track_US"
 
@@ -62,6 +75,19 @@ not state a number this review says so rather than guessing.
     the variance to frame-by-frame independence.
 - Stated limits: FL is the weakest parameter; each frame analysed independently; works on
   cropped B-mode frames, not console screenshots.
+- Released training code (`model_training.py`): VGG16 encoder with ImageNet weights, decoder
+  512/256/128/64, BCE default, Adam default LR, EarlyStopping patience 8, ReduceLROnPlateau
+  0.1/10, 10 % validation split; augmentation by Keras ImageDataGenerator (rotation 5°,
+  shifts 7.5 %, zoom 7.5 %, horizontal flip), three copies per image.
+- Host's news page reports the VGG16-U-Net on the UMUD 35-image expert benchmark: mean
+  difference MT 0.13 mm (SD 3.34), FL 3.87 mm (SD 4.58), PA -0.41° (SD 1.94). Small bias,
+  large spread: the losses are occasional gross failures, not a constant offset.
+- Independent test (van der Zee et al. 2025): RMSD vs three raters 3.8 mm / 3.9° on the GM
+  calf-raise sequence and 8.0 mm / 4.8° on a TA sequence; "could not detect a single fascicle
+  or the deep aponeurosis in some images".
+- Ritsche, Schmid, Franchi, Faude 2022 (Front Physiol 13:981862), two devices analysed with
+  SMA: GM FL agreement ICC 0.84, SEM 4.5 mm; RF FL ICC 0.46, SEM 8.6 mm; VL FL ICC 0.80; MT
+  ICC about 0.9 everywhere. MT is the most reliable variable, RF and VL FL the least.
 
 ### 2.3 Later versions (v0.3.0, v0.3.1; GitHub PaulRitsche/DL_Track_US)
 
@@ -73,8 +99,12 @@ not state a number this review says so rather than guessing.
 - Shipped defaults (`gui_files/settings.json`): apo threshold 0.1, apo length threshold 600,
   fascicle threshold 0.01, fascicle length threshold 40, minimal muscle width 200,
   pennation range 10 to 30°, method `linear_extrapolation`, Hampel window 3 / 2 SD,
-  stacked segmentation. (Our vendored `do_calculations.py` is this `linear_extrapolation`
-  path; the curved methods are present in `do_calculations_curved.py` but disabled in the GUI.)
+  stacked segmentation. The authors' documented defaults (`_backup_settings.py`) differ:
+  0.2 / 400 / 0.05 / 40 / 60 / 10 to 40° / `curve_connect_linear`. (Our vendored
+  `do_calculations.py` is the `linear_extrapolation` path; the curved methods exist in
+  `do_calculations_curved.py` but the GUI stops with "not yet fully implemented" for them.)
+- v0.3.1 video code changed MT to the minimum vertical difference in the central third and
+  added "tangential extrapolation" of apo ends (changelog 2025-11-18).
 - Scale-bar reader (`calibrate.py`): scans the bottom 60 % x right 15 % of the frame, marks
   rows whose max > 150, and takes the largest gap between bright rows as the bar distance.
   It never uses the spacing value in a computation. This is why stock DL_Track transfers
@@ -107,6 +137,22 @@ the morphology step (biased thin by roughly 10 px, 0.5 to 1 mm at test-set scale
 
 ## 3. The host's manual protocol (what the test labels are)
 
+Kaggle Data page: test images come from Siemens Acuson Juniper, Telemed ArtUS EXT-1H and
+Philips Lumify; muscles VL, GM and rectus femoris; healthy and cerebral-palsy participants,
+18 to 28 y, 59 % male, disjoint from training; public/private split random by image. Stated
+test ranges PA 5 to 45°, FL 30 to 200 mm, MT 10 to 50 mm. Reference annotation by two
+researchers: superficial and deep apo, 3 visible fascicles, 3 pennation angles, 3 thickness
+lines; FL "along the fascicle line" with "linear extrapolation techniques" when the fascicle
+leaves the frame; MT "perpendicular distance ... at three locations distributed over the
+muscle width"; rater discrepancies above 10 mm FL, 4° PA or 1 mm MT were re-evaluated.
+Training masks (2,761 fascicle, 1,048 apo images from Juniper, ArtUS, Echo Blaster 128,
+Aloka Alpha-10, Philips HD11; VL, GM, GL, TA) follow the 2024 paper's labelling.
+
+The OSF expert benchmark README (v0.1.0, six raters, GM/soleus/VL, four devices) states the
+same protocol: "3 straight lines ... at a left, middle and right location" for MT, "3
+segmented lines" for fascicles, "3 angles" for PA "(not the same as for the fascicles)", mean
+of each. Six-rater statistics are not yet published.
+
 From the DL_Track_US manual-analysis documentation and the host's forum answers:
 
 - Scale: one 1 cm line drawn on the ruler.
@@ -119,7 +165,9 @@ From the DL_Track_US manual-analysis documentation and the host's forum answers:
   least extrapolation (host, forum). Averaged.
 - PA: at least three angles, each as two segments "along the fascicle" and "along the deep
   aponeurosis", i.e. measured at the fascicle's insertion against the local deep-apo direction.
-  Averaged.
+  Averaged. Host (forum 748126): "the exact length of the part of the lower aponeurosis taken
+  into account is not standardised", and "we only used the vertical scale bars" even on the
+  stretched 1200x800 images.
 - Ground truth = mean of the two raters. For images with more than two apos (e.g. TA with a
   central apo) the superficial compartment is the target (host, forum 2026-10-02).
 
@@ -472,7 +520,17 @@ are convention problems before they are segmentation problems.
    experiments with literature support. SAM-family prompting is not worth GPU time for thin
    oriented structures.
 
-### 8.4 Open questions the literature does not answer
+### 8.4 Two facts from the test-set description that change priors
+
+- Rectus femoris is a test muscle and is absent from the training set; RF fascicle length is
+  the least reliable of all (Ritsche 2022: ICC 0.46, SEM 8.6 mm). Expect a device/muscle
+  group in the test set that neither our models nor DL_Track have seen.
+- Cerebral-palsy participants are included; CP gastrocnemius has shorter fascicles and
+  smaller muscle thickness than healthy controls, so priors clipped to healthy-adult ranges
+  will bias those images. Keep clip ranges at the host's stated bounds (5 to 45°, 30 to 200 mm,
+  10 to 50 mm), not tighter.
+
+### 8.5 Open questions the literature does not answer
 
 - No published single-image deep method reports FL below about 3 mm against manual labels;
   the best video methods (UltraTimTrack, DUSTrack) reach 2.3 to 2.6 mm only with temporal
