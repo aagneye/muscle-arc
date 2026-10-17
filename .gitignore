@@ -46,3 +46,6 @@ submissions/*.csv
 # Experiments outputs
 experiments/**
 !experiments/.gitkeep
+
+# Third-party skill repos cloned for local reference (installed as plugins; not vendored)
+.claude/skills-src/
