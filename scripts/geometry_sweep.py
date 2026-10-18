@@ -26,6 +26,7 @@ import yaml
 
 from muscle_arc.data.dataset import list_images, read_gray
 from muscle_arc.data.paths import DataPaths
+from muscle_arc.geometry.calibration import apply_calibration, fit_linear_calibration, loo_gain
 from muscle_arc.geometry.metrics import (
     fascicle_length_least_extrap_px,
     fascicle_length_px,
@@ -153,6 +154,9 @@ def main() -> None:
     ap.add_argument("--pick", nargs=3, metavar=("PA", "FL", "MT"), default=None,
                     help="variant names to write as a candidate (default: best on OSF)")
     ap.add_argument("--write-candidate", type=Path, default=None)
+    ap.add_argument("--calibrate", action="store_true",
+                    help="apply OSF-fitted linear calibration per parameter when LOO helps")
+    ap.add_argument("--shrink", type=float, default=0.5)
     args = ap.parse_args()
 
     cfg = yaml.safe_load(args.config.read_text())
@@ -190,10 +194,25 @@ def main() -> None:
     test_agree = sum(scores[(scores.param == p) & (scores.variant == v)]["norm_test"].iloc[0]
                      for p, v in pick.items()) / 3
     print(f"PICK {pick}  OSF UMUD={osf_umud:.3f}  test-agreement={test_agree:.3f}")
+
+    calib: dict[str, tuple[float, float]] = {}
+    if args.calibrate:
+        for p, v in pick.items():
+            pred, gt = vo[p][v].to_numpy(), osf[p].to_numpy()
+            gain_loo = loo_gain(pred, gt, shrink=args.shrink)
+            g, o = fit_linear_calibration(pred, gt, shrink=args.shrink)
+            use = gain_loo < 0
+            print(f"CALIB {p}: gain={g:.3f} offset={o:+.3f} loo_delta_mae={gain_loo:+.3f} -> {'APPLY' if use else 'skip'}")
+            if use:
+                calib[p] = (g, o)
+
     if args.write_candidate:
         sub = pd.DataFrame({"image_id": mt["image_id"]})
         for p, v in pick.items():
-            sub[p] = smooth_groups(vt[p][v], groups).round(4)
+            series = vt[p][v]
+            if p in calib:
+                series = pd.Series(apply_calibration(series.to_numpy(), *calib[p])).clip(*CLIP[p])
+            sub[p] = smooth_groups(series, groups).round(4)
         sub[["image_id", "pa_deg", "fl_mm", "mt_mm"]].to_csv(args.write_candidate, index=False)
         print(f"wrote {args.write_candidate} ({len(sub)} rows)")
 
