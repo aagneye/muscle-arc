@@ -101,3 +101,19 @@ with sample GT, or (b) a different benchmark with ruler chrome present.
 - Enable `--tick-keypoint-ckpt` by default before it has been validated to
   improve (not just match) the existing heuristic on OSF Gate2b — same
   discipline as the residual-regressor rule above.
+
+## 2026-10-18 public-LB results (dual_v3 pipeline)
+
+| Submission | Change vs previous best | Public |
+|---|---|---|
+| dual_v3 + exact scale + fixed 5-frame clips | new dual U-Nets (dedup splits), deterministic px/cm | 0.46010 |
+| + PA +1.9° | pennation offset toward DL_Track insertion convention | **0.44273** (rank 120/433) |
+| S3 | FL = mean of 3 least-extrapolated fragments, 25 % trig, OSF-calibrated (FL -6 mm avg) | 0.47343 |
+| S4 | PA without Radon blend (+2°) | 0.44684 |
+
+Lesson: the 35-image OSF benchmark (six raters, cropped GM/SOL/VL) is NOT a reliable
+selector for the test raters (two raters, console frames, VL/GM/RF incl. CP). On OSF the
+least-extrapolation FL and no-Radon PA both won (OSF UMUD 0.199) and both lost on public.
+Test raters read PA about 2° steeper and FL longer than the OSF raters. Keep the 0.44273
+geometry; gains must come from mask quality (5-fold ensemble, `scripts/vm_train_folds.sh`,
+`scripts/vm_post_k5.sh`).
