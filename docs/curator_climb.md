@@ -117,3 +117,8 @@ least-extrapolation FL and no-Radon PA both won (OSF UMUD 0.199) and both lost o
 Test raters read PA about 2° steeper and FL longer than the OSF raters. Keep the 0.44273
 geometry; gains must come from mask quality (5-fold ensemble, `scripts/vm_train_folds.sh`,
 `scripts/vm_post_k5.sh`).
+| k5 | 5-fold ensemble (dedup group splits), 0.4427 geometry | **0.41936** (rank 107/434) |
+
+Next: `docs/competition_intelligence.md` (leaders, discussions, rules) and
+`docs/superpowers/plans/2026-10-18-top10-strategy.md` (Line A automated, Line B declared
+manual test labels + calibration, Line C merger).
