@@ -303,6 +303,12 @@ def main() -> None:
         help="Dir with {apo,fasc}_splits.json (default: train.split_dir in config)",
     )
     parser.add_argument(
+        "--checkpoint-dir",
+        type=Path,
+        default=None,
+        help="Override train.checkpoint_dir from the config (e.g. one dir per fold)",
+    )
+    parser.add_argument(
         "--no-augments",
         action="store_true",
         help="Disable train-time albumentations",
@@ -313,6 +319,8 @@ def main() -> None:
         cfg = yaml.safe_load(f)
 
     set_seed(int(cfg["seed"]))
+    if args.checkpoint_dir is not None:
+        cfg["train"]["checkpoint_dir"] = str(args.checkpoint_dir)
     device_name = cfg.get("device", "cuda")
     device = torch.device(
         device_name if device_name != "cuda" or torch.cuda.is_available() else "cpu"
