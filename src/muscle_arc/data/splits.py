@@ -164,6 +164,38 @@ def assign_groups_to_splits(
     return out
 
 
+def assign_groups_to_kfold(
+    stems: list[str],
+    *,
+    k: int,
+    fold: int,
+    seed: int = 42,
+) -> dict[str, list[str]]:
+    """Group-aware K-fold: ``val`` = sequence groups in ``fold``, ``train`` = the rest.
+
+    Groups come from ``build_sequence_groups`` so a 5-frame clip never straddles
+    train and val. Groups are shuffled with ``seed`` and dealt round-robin into
+    ``k`` folds, so each stem is in the val split of exactly one fold.
+    ``holdout`` is empty (all labelled data is used across the folds).
+    """
+    if k < 2 or not 0 <= fold < k:
+        raise ValueError(f"need k >= 2 and 0 <= fold < k, got k={k} fold={fold}")
+    stem_to_group = build_sequence_groups(stems)
+    by_group: dict[str, list[str]] = {}
+    for s in stems:
+        by_group.setdefault(stem_to_group[s], []).append(s)
+    groups = sorted(by_group)
+    rng = np.random.default_rng(seed)
+    rng.shuffle(groups)
+    val_groups = {g for i, g in enumerate(groups) if i % k == fold}
+    out: dict[str, list[str]] = {"train": [], "val": [], "holdout": []}
+    for g, members in by_group.items():
+        out["val" if g in val_groups else "train"].extend(members)
+    out["train"] = sorted(set(out["train"]))
+    out["val"] = sorted(set(out["val"]))
+    return out
+
+
 def write_split_manifest(
     out_dir: Path,
     branch: str,
