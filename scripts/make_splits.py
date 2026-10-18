@@ -11,6 +11,7 @@ import yaml
 from muscle_arc.data.dataset import pair_images_masks
 from muscle_arc.data.paths import DataPaths
 from muscle_arc.data.splits import (
+    assign_groups_to_kfold,
     assign_groups_to_splits,
     dedupe_pairs,
     group_ids_for_stems,
@@ -25,6 +26,13 @@ def main() -> None:
     parser.add_argument("--train-frac", type=float, default=0.70)
     parser.add_argument("--val-frac", type=float, default=0.15)
     parser.add_argument("--holdout-frac", type=float, default=0.15)
+    parser.add_argument(
+        "--kfold",
+        type=int,
+        default=0,
+        help="If > 1, write a group-aware K-fold split (val = fold --fold, no holdout)",
+    )
+    parser.add_argument("--fold", type=int, default=0)
     args = parser.parse_args()
 
     cfg = yaml.safe_load(args.config.read_text())
@@ -39,13 +47,16 @@ def main() -> None:
         pairs = pair_images_masks(img_d, mask_d)
         pairs, n_duplicates_dropped, dup_groups = dedupe_pairs(pairs)
         stems = [p[0].stem for p in pairs]
-        splits = assign_groups_to_splits(
-            stems,
-            seed=seed,
-            train_frac=args.train_frac,
-            val_frac=args.val_frac,
-            holdout_frac=args.holdout_frac,
-        )
+        if args.kfold > 1:
+            splits = assign_groups_to_kfold(stems, k=args.kfold, fold=args.fold, seed=seed)
+        else:
+            splits = assign_groups_to_splits(
+                stems,
+                seed=seed,
+                train_frac=args.train_frac,
+                val_frac=args.val_frac,
+                holdout_frac=args.holdout_frac,
+            )
         # Sanity: no group leakage
         for a, b in (("train", "val"), ("train", "holdout"), ("val", "holdout")):
             ga = group_ids_for_stems(splits[a])
@@ -60,6 +71,8 @@ def main() -> None:
             splits,
             seed=seed,
             meta={
+                "kfold": args.kfold,
+                "fold": args.fold,
                 "train_frac": args.train_frac,
                 "val_frac": args.val_frac,
                 "holdout_frac": args.holdout_frac,
