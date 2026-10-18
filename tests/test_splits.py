@@ -78,3 +78,32 @@ def test_no_hash_collision_across_splits_after_dedupe(tmp_path: Path) -> None:
         ga = group_ids_for_stems(splits[a])
         gb = group_ids_for_stems(splits[b])
         assert not (ga & gb)
+
+
+def test_kfold_partitions_groups() -> None:
+    from muscle_arc.data.splits import assign_groups_to_kfold, build_sequence_groups
+
+    # 12 runs of 5 consecutive frames, separated by numbering gaps -> 12 groups
+    stems = [f"image_{run * 10 + k:04d}" for run in range(12) for k in range(5)]
+    groups = build_sequence_groups(stems)
+    assert len(set(groups.values())) == 12
+
+    seen_val: list[str] = []
+    for fold in range(5):
+        splits = assign_groups_to_kfold(stems, k=5, fold=fold, seed=42)
+        assert set(splits) == {"train", "val", "holdout"}
+        assert splits["holdout"] == []
+        assert set(splits["train"]) | set(splits["val"]) == set(stems)
+        assert not set(splits["train"]) & set(splits["val"])
+        # no group is split between train and val
+        assert not group_ids_for_stems(splits["train"]) & group_ids_for_stems(splits["val"])
+        seen_val.extend(splits["val"])
+    # every stem is validated in exactly one fold
+    assert sorted(seen_val) == sorted(stems)
+
+
+def test_kfold_rejects_bad_fold() -> None:
+    from muscle_arc.data.splits import assign_groups_to_kfold
+
+    with pytest.raises(ValueError):
+        assign_groups_to_kfold(["image_0001", "image_0002"], k=5, fold=5, seed=0)
