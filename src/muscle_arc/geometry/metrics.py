@@ -826,6 +826,55 @@ def fascicle_length_px(
     return float("nan")
 
 
+def fascicle_length_least_extrap_px(
+    fasc_mask: np.ndarray,
+    apo_mask: np.ndarray,
+    fasc_prob: np.ndarray | None = None,
+    gray: np.ndarray | None = None,
+    top_k: int = 3,
+    pa_range: tuple[float, float] = (5.0, 45.0),
+    mm_per_pixel: float | None = None,
+) -> float:
+    """FL (px) as the host raters measure it: mean of the ``top_k`` fragments that
+    need the least extrapolation.
+
+    Each fragment's straight line is intersected with both fitted aponeurosis
+    lines; extrapolated fraction = 1 - visible_length / apo-to-apo length.
+    Fragments outside ``pa_range`` against the deep apo, or whose intersections
+    fall far outside the image, are ignored. Returns NaN when none qualify.
+    """
+    if apo_mask is None or int(apo_mask.sum()) < 20:
+        return float("nan")
+    apo_lines = _fit_apo_lines(apo_mask, fasc_mask=fasc_mask, mm_per_pixel=mm_per_pixel)
+    if apo_lines is None:
+        return float("nan")
+    (ps, ds), (pd_, dd) = apo_lines
+    h, w = fasc_mask.shape
+    diag = float(np.hypot(h, w))
+    scored: list[tuple[float, float]] = []
+    for point, direction, length in _fascicle_lines(
+        fasc_mask, fasc_prob=fasc_prob, gray=None, apo_mask=apo_mask
+    ):
+        ang = _angle_between_dirs(direction, dd)
+        if not (pa_range[0] <= ang <= pa_range[1]):
+            continue
+        p1 = _line_line_intersection(point, direction, ps, ds)
+        p2 = _line_line_intersection(point, direction, pd_, dd)
+        if p1 is None or p2 is None:
+            continue
+        if not all(-0.75 * w <= p[0] <= 1.75 * w and -0.75 * h <= p[1] <= 1.75 * h for p in (p1, p2)):
+            continue
+        fl = float(np.linalg.norm(p1 - p2))
+        if not (8.0 < fl < 1.5 * diag):
+            continue
+        extrap = float(np.clip(1.0 - length / fl, 0.0, 1.0))
+        scored.append((extrap, fl))
+    if not scored:
+        return float("nan")
+    scored.sort(key=lambda t: t[0])
+    return float(np.mean([fl for _, fl in scored[: max(1, top_k)]]))
+
+
 def _estimate_host_v1(
     apo_mask: np.ndarray,
     fasc_mask: np.ndarray,
