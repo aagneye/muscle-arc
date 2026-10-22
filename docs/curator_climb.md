@@ -123,3 +123,14 @@ geometry; gains must come from mask quality (5-fold ensemble, `scripts/vm_train_
 Next: `docs/competition_intelligence.md` (leaders, discussions, rules) and
 `docs/superpowers/plans/2026-10-18-top10-strategy.md` (Line A automated, Line B declared
 manual test labels + calibration, Line C merger).
+
+## 2026-10-22: factory mode, goal public < 0.23
+
+- Best public **0.40307** (k10, rank 112/466); rank 10 = 0.2225.
+- Built the declared manual-measurement line (host-allowed external data): `tools/labeler/`
+  served by `scripts/label_server.py` on the VM (`scripts/vm_label_server.sh`, reach via
+  `ssh -N -L 8765:127.0.0.1:8765 azureuser@<vm>`), saves to `data/labeling/labels.json`
+  (git-ignored; public repo). 203 main images (clip middles), 106 optional clip frames.
+- `scripts/eval_local.py` = local replica of the public score against those measurements;
+  candidates are ranked locally before Kaggle.
+- Seed 3 of the dual U-Net ensemble queued (`configs/dual_v3_s3.yaml`).
