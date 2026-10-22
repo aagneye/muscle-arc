@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UMUD Measure</title>
+<style>
+  :root { --bg:#111418; --panel:#1b2027; --text:#e6e9ee; --muted:#9aa4b2; --mt:#3fb6ff; --fl:#5be37d; --pa:#ffb340; --apo:#ff6b9a; --warn:#ff6b6b; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--text); font:14px/1.4 system-ui, sans-serif; }
+  #app { display:grid; grid-template-columns: 1fr 320px; height:100vh; }
+  #stage { position:relative; overflow:hidden; cursor:crosshair; }
+  canvas { display:block; }
+  #side { background:var(--panel); padding:14px; overflow-y:auto; border-left:1px solid #2a313b; }
+  h1 { font-size:16px; margin:0 0 6px; }
+  .muted { color:var(--muted); }
+  .row { display:flex; gap:8px; align-items:center; margin:6px 0; flex-wrap:wrap; }
+  button { background:#2a313b; color:var(--text); border:1px solid #39424e; border-radius:6px; padding:6px 10px; cursor:pointer; font:inherit; }
+  button.on { outline:2px solid #fff; }
+  button.mt { border-color:var(--mt); } button.fl { border-color:var(--fl); } button.pa { border-color:var(--pa); }
+  .val { font-variant-numeric: tabular-nums; font-size:15px; }
+  .bar { height:8px; background:#2a313b; border-radius:4px; overflow:hidden; }
+  .bar > div { height:100%; background:var(--fl); width:0; }
+  #hint { position:absolute; left:12px; top:12px; background:rgba(0,0,0,.65); padding:6px 10px; border-radius:6px; pointer-events:none; }
+  #status { position:absolute; right:12px; top:12px; background:rgba(0,0,0,.65); padding:4px 8px; border-radius:6px; pointer-events:none; }
+  kbd { background:#2a313b; border:1px solid #39424e; border-radius:4px; padding:0 4px; font-size:12px; }
+  details { margin-top:10px; } summary { cursor:pointer; color:var(--muted); }
+  input[type=range] { width:120px; }
+  .warn { color:var(--warn); }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="stage"><canvas id="cv"></canvas><div id="hint"></div><div id="status"></div></div>
+  <div id="side">
+    <h1>UMUD manual measurement</h1>
+    <div class="muted" id="imginfo">loading…</div>
+    <div class="row"><div class="bar" style="flex:1"><div id="prog"></div></div><span id="progtxt" class="muted"></span></div>
+
+    <div class="row">
+      <button id="bmt" class="mt">1 Thickness</button>
+      <button id="bfl" class="fl">2 Fascicles</button>
+      <button id="bpa" class="pa">3 Angles</button>
+    </div>
+    <div class="val">MT <b id="vmt">–</b> mm <span class="muted" id="nmt"></span></div>
+    <div class="val">FL <b id="vfl">–</b> mm <span class="muted" id="nfl"></span></div>
+    <div class="val">PA <b id="vpa">–</b> ° <span class="muted" id="npa"></span></div>
+
+    <div class="row">
+      <button id="bprev">◀ Prev</button>
+      <button id="bnext">Save &amp; next ▶</button>
+      <button id="bskip">Skip (unmeasurable)</button>
+    </div>
+    <div class="row">
+      <button id="bundo">Undo</button>
+      <button id="bclear">Clear image</button>
+      <button id="bfit">Fit</button>
+    </div>
+    <div class="row"><span class="muted">Brightness</span><input id="br" type="range" min="50" max="250" value="100"></div>
+    <div class="row"><span class="muted">Contrast</span><input id="ct" type="range" min="50" max="300" value="100"></div>
+    <div class="row"><label><input id="optional" type="checkbox"> include optional clip frames</label></div>
+    <div class="row"><button id="bjump">Go to first unmeasured</button></div>
+
+    <details open><summary>Protocol (host's method)</summary>
+      <p><b style="color:var(--mt)">1 Thickness, 3 lines:</b> click the inner edge of the upper (superficial) aponeurosis, then the inner edge of the lower (deep) aponeurosis. Left, middle, right of the muscle. Lines snap vertical; hold <kbd>Shift</kbd> for a free line.</p>
+      <p><b style="color:var(--fl)">2 Fascicles, 3 fibres:</b> start on the deep aponeurosis, click along a clearly visible fascicle (up to 2 bends), end on the superficial aponeurosis. Extend past the image edge into the grey margin if the fibre leaves the frame. <kbd>Enter</kbd> or double-click finishes. Prefer fibres needing the least extension, in the middle of the image.</p>
+      <p><b style="color:var(--pa)">3 Angles, 3 angles:</b> 2 clicks along a fascicle where it meets the deep aponeurosis, then 2 clicks along the deep aponeurosis at that spot.</p>
+      <p class="muted">If the image shows more than two aponeuroses, measure the upper (superficial) muscle.</p>
+    </details>
+    <details><summary>Keys</summary>
+      <p><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> tool · <kbd>Z</kbd> undo · <kbd>Enter</kbd> finish fascicle · <kbd>N</kbd>/<kbd>→</kbd> save &amp; next · <kbd>P</kbd>/<kbd>←</kbd> prev · <kbd>S</kbd> skip · <kbd>F</kbd> fit · wheel zoom · right-drag or <kbd>Space</kbd>+drag pan</p>
+    </details>
+  </div>
+</div>
+<script>
+"use strict";
+const NEED = { mt: 3, fl: 3, pa: 3 };
+const cv = document.getElementById("cv"), ctx = cv.getContext("2d"), stage = document.getElementById("stage");
+let manifest = [], labels = {}, queue = [], qi = 0, img = null, item = null;
+let rec = null, mode = "mt", pending = [], view = { s: 1, x: 0, y: 0 }, t0 = 0, dirty = false;
+let panning = false, panStart = null, spaceDown = false, mouse = null, shiftDown = false;
+const $ = (id) => document.getElementById(id);
+
+function emptyRec() { return { mt: [], fl: [], pa: [], skip: false, seconds: 0 }; }
+function dist(a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+function poly(pts) { let s = 0; for (let i = 1; i < pts.length; i++) s += dist(pts[i - 1], pts[i]); return s; }
+function angle(a, b) {
+  const ax = a[1][0] - a[0][0], ay = a[1][1] - a[0][1], bx = b[1][0] - b[0][0], by = b[1][1] - b[0][1];
+  const na = Math.hypot(ax, ay), nb = Math.hypot(bx, by); if (!na || !nb) return NaN;
+  return Math.acos(Math.min(1, Math.abs(ax * bx + ay * by) / (na * nb))) * 180 / Math.PI;
+}
+function mean(v) { return v.length ? v.reduce((a, b) => a + b, 0) / v.length : NaN; }
+function fmt(v, d = 1) { return isNaN(v) ? "–" : v.toFixed(d); }
+
+async function boot() {
+  manifest = (await (await fetch("manifest.json")).json()).images;
+  labels = await (await fetch("api/labels")).json();
+  buildQueue(); qi = firstUnmeasured(); await load();
+}
+function buildQueue() {
+  const inc = $("optional").checked;
+  queue = manifest.filter((m) => inc || !m.optional);
+}
+function firstUnmeasured() { const i = queue.findIndex((m) => !labels[m.image_id]); return i < 0 ? 0 : i; }
+
+async function load() {
+  item = queue[qi];
+  rec = labels[item.image_id] ? JSON.parse(JSON.stringify(labels[item.image_id])) : emptyRec();
+  delete rec.saved_at; pending = []; dirty = false; t0 = performance.now();
+  mode = nextMode() || "mt";
+  img = new Image(); img.src = "images/" + encodeURIComponent(item.file);
+  await img.decode(); fit(); refresh();
+}
+function nextMode() { for (const k of ["mt", "fl", "pa"]) if (rec[k].length < NEED[k]) return k; return null; }
+
+function fit() {
+  const W = stage.clientWidth, H = stage.clientHeight; cv.width = W; cv.height = H;
+  // leave a margin around the image so fascicles can be extended past the frame
+  view.s = Math.min(W / (img.width * 1.15), H / (img.height * 1.15));
+  view.x = (W - img.width * view.s) / 2; view.y = (H - img.height * view.s) / 2; draw();
+}
+const toImg = (sx, sy) => [(sx - view.x) / view.s, (sy - view.y) / view.s];
+const toScr = (p) => [p[0] * view.s + view.x, p[1] * view.s + view.y];
+
+function draw() {
+  const W = cv.width, H = cv.height;
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = "#2b2f36"; ctx.fillRect(0, 0, W, H);
+  ctx.filter = `brightness(${$("br").value}%) contrast(${$("ct").value}%)`;
+  ctx.imageSmoothingEnabled = view.s < 2;
+  ctx.drawImage(img, view.x, view.y, img.width * view.s, img.height * view.s);
+  ctx.filter = "none";
+  ctx.strokeStyle = "#555"; ctx.lineWidth = 1; ctx.strokeRect(view.x, view.y, img.width * view.s, img.height * view.s);
+  const line = (pts, color, w = 2, dash = []) => {
+    ctx.strokeStyle = color; ctx.lineWidth = w; ctx.setLineDash(dash); ctx.beginPath();
+    pts.forEach((p, i) => { const [x, y] = toScr(p); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); ctx.setLineDash([]);
+    pts.forEach((p) => { const [x, y] = toScr(p); ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, 3, 0, 7); ctx.fill(); });
+  };
+  rec.mt.forEach((l) => line(l, getCss("--mt")));
+  rec.fl.forEach((l) => line(l, getCss("--fl")));
+  rec.pa.forEach((a) => { line(a.fasc, getCss("--pa")); line(a.apo, getCss("--apo")); });
+  if (pending.length && mouse) {
+    const color = mode === "mt" ? getCss("--mt") : mode === "fl" ? getCss("--fl") : (paStage() === "apo" ? getCss("--apo") : getCss("--pa"));
+    const live = [...currentPendingPts(), snap(mouse)];
+    line(live, color, 1.5, [5, 4]);
+  }
+}
+function getCss(v) { return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+function paStage() { return pending.length < 2 ? "fasc" : "apo"; }
+function currentPendingPts() { return mode === "pa" && pending.length >= 2 ? pending.slice(2) : pending; }
+function snap(p) {
+  if (mode === "mt" && pending.length === 1 && !shiftDown) return [pending[0][0], p[1]];
+  return p;
+}
+
+function addPoint(p) {
+  if (mode === "mt") {
+    pending.push(snap(p));
+    if (pending.length === 2) { rec.mt.push(round(pending)); pending = []; afterShape(); }
+  } else if (mode === "fl") {
+    pending.push(p);
+    if (pending.length === 4) finishFascicle();
+  } else if (mode === "pa") {
+    pending.push(p);
+    if (pending.length === 4) { rec.pa.push({ fasc: round(pending.slice(0, 2)), apo: round(pending.slice(2)) }); pending = []; afterShape(); }
+  }
+  refresh();
+}
+function finishFascicle() {
+  if (mode === "fl" && pending.length >= 2) { rec.fl.push(round(pending)); pending = []; afterShape(); }
+  refresh();
+}
+function round(pts) { return pts.map((p) => [Math.round(p[0] * 10) / 10, Math.round(p[1] * 10) / 10]); }
+function afterShape() { dirty = true; if (rec[mode].length >= NEED[mode]) { const n = nextMode(); if (n) mode = n; } save(false); }
+
+function undo() {
+  if (pending.length) pending.pop();
+  else {
+    for (const k of [mode, "pa", "fl", "mt"]) if (rec[k].length) { rec[k].pop(); mode = k; dirty = true; break; }
+  }
+  refresh();
+}
+
+async function save(advance) {
+  rec.seconds = Math.round((rec.seconds || 0) + (performance.now() - t0) / 1000); t0 = performance.now();
+  const r = await fetch("api/labels/" + encodeURIComponent(item.image_id), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rec) });
+  if (r.ok) { labels[item.image_id] = JSON.parse(JSON.stringify(rec)); dirty = false; status("saved"); } else status("SAVE FAILED " + r.status, true);
+  if (advance && qi < queue.length - 1) { qi++; await load(); }
+}
+function status(t, bad) { const s = $("status"); s.textContent = t; s.className = bad ? "warn" : ""; clearTimeout(status.t); status.t = setTimeout(() => (s.textContent = ""), 1500); }
+
+function refresh() {
+  const mm = item.mm_per_pixel;
+  const mt = mean(rec.mt.map((l) => poly(l) * mm)), fl = mean(rec.fl.map((l) => poly(l) * mm)), pa = mean(rec.pa.map((a) => angle(a.fasc, a.apo)));
+  $("vmt").textContent = fmt(mt); $("vfl").textContent = fmt(fl); $("vpa").textContent = fmt(pa);
+  $("nmt").textContent = `${rec.mt.length}/3`; $("nfl").textContent = `${rec.fl.length}/3`; $("npa").textContent = `${rec.pa.length}/3`;
+  for (const k of ["mt", "fl", "pa"]) $("b" + k).classList.toggle("on", mode === k);
+  const done = queue.filter((m) => labels[m.image_id]).length;
+  $("prog").style.width = (100 * done / queue.length) + "%"; $("progtxt").textContent = `${done}/${queue.length}`;
+  const clip = item.clip === null ? "" : ` · clip ${item.clip} frame ${item.clip_pos + 1}/5${item.optional ? " (optional)" : ""}`;
+  $("imginfo").textContent = `${qi + 1}/${queue.length} · ${item.image_id} · ${item.layout} · ${item.mm_per_pixel.toFixed(4)} mm/px${clip}${rec.skip ? " · SKIPPED" : ""}`;
+  const hints = { mt: "Thickness: click superficial inner edge, then deep inner edge", fl: "Fascicle: deep apo → along fibre → superficial apo, Enter to finish", pa: paStage() === "fasc" ? "Angle: 2 clicks along the fascicle at the deep apo" : "Angle: 2 clicks along the deep aponeurosis" };
+  $("hint").textContent = nextMode() === null && !pending.length ? "All 9 drawn. N = save & next" : hints[mode];
+  draw();
+}
+
+// ----- input -----
+cv.addEventListener("contextmenu", (e) => e.preventDefault());
+cv.addEventListener("mousedown", (e) => {
+  if (e.button === 2 || spaceDown) { panning = true; panStart = [e.clientX - view.x, e.clientY - view.y]; return; }
+  if (e.button === 0 && e.detail === 1) addPoint(toImg(e.offsetX, e.offsetY));
+});
+// the first click of a double-click already placed the end point; the second is ignored
+cv.addEventListener("dblclick", () => { if (mode === "fl") finishFascicle(); });
+window.addEventListener("mouseup", () => (panning = false));
+cv.addEventListener("mousemove", (e) => {
+  mouse = toImg(e.offsetX, e.offsetY); shiftDown = e.shiftKey;
+  if (panning) { view.x = e.clientX - panStart[0]; view.y = e.clientY - panStart[1]; }
+  draw();
+});
+cv.addEventListener("wheel", (e) => {
+  e.preventDefault(); const f = e.deltaY < 0 ? 1.15 : 1 / 1.15; const [ix, iy] = toImg(e.offsetX, e.offsetY);
+  view.s *= f; view.x = e.offsetX - ix * view.s; view.y = e.offsetY - iy * view.s; draw();
+}, { passive: false });
+window.addEventListener("keydown", async (e) => {
+  if (e.target.tagName === "INPUT") return;
+  const k = e.key.toLowerCase();
+  if (k === " ") { spaceDown = true; e.preventDefault(); }
+  if (k === "shift") shiftDown = true;
+  if (k === "1" || k === "2" || k === "3") { pending = []; mode = { 1: "mt", 2: "fl", 3: "pa" }[k]; refresh(); }
+  else if (k === "z") undo();
+  else if (k === "enter") finishFascicle();
+  else if (k === "n" || k === "arrowright") await save(true);
+  else if (k === "p" || k === "arrowleft") { if (dirty) await save(false); if (qi > 0) { qi--; await load(); } }
+  else if (k === "s") { rec.skip = true; await save(true); }
+  else if (k === "f") fit();
+});
+window.addEventListener("keyup", (e) => { if (e.key === " ") spaceDown = false; if (e.key === "Shift") shiftDown = false; });
+window.addEventListener("resize", fit);
+$("bmt").onclick = () => { pending = []; mode = "mt"; refresh(); };
+$("bfl").onclick = () => { pending = []; mode = "fl"; refresh(); };
+$("bpa").onclick = () => { pending = []; mode = "pa"; refresh(); };
+$("bnext").onclick = () => save(true);
+$("bprev").onclick = async () => { if (dirty) await save(false); if (qi > 0) { qi--; await load(); } };
+$("bskip").onclick = async () => { rec.skip = true; await save(true); };
+$("bundo").onclick = undo;
+$("bclear").onclick = () => { if (confirm("Clear all drawings on this image?")) { rec = emptyRec(); pending = []; mode = "mt"; dirty = true; refresh(); } };
+$("bfit").onclick = fit;
+$("br").oninput = draw; $("ct").oninput = draw;
+$("optional").onchange = async () => { const id = item.image_id; buildQueue(); qi = Math.max(0, queue.findIndex((m) => m.image_id === id)); await load(); };
+$("bjump").onclick = async () => { qi = firstUnmeasured(); await load(); };
+window.addEventListener("beforeunload", (e) => { if (dirty) { e.preventDefault(); e.returnValue = ""; } });
+boot();
+</script>
+</body>
+</html>
