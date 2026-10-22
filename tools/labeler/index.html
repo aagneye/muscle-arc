@@ -101,15 +101,17 @@ function buildQueue() {
   const inc = $("optional").checked;
   queue = manifest.filter((m) => inc || !m.optional);
 }
-function firstUnmeasured() { const i = queue.findIndex((m) => !labels[m.image_id]); return i < 0 ? 0 : i; }
+function firstUnmeasured() { const i = queue.findIndex((m) => !isDone(m.image_id)); return i < 0 ? 0 : i; }
 
 async function load() {
   item = queue[qi];
   rec = labels[item.image_id] ? JSON.parse(JSON.stringify(labels[item.image_id])) : emptyRec();
   delete rec.saved_at; pending = []; dirty = false; t0 = performance.now();
   mode = nextMode() || "mt";
-  img = new Image(); img.src = "images/" + encodeURIComponent(item.file);
-  await img.decode(); fit(); refresh();
+  img = new Image();
+  // onload, not img.decode(): decode() can stall while the page is not visible
+  await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; img.src = "images/" + encodeURIComponent(item.file); });
+  fit(); refresh();
 }
 function nextMode() { for (const k of ["mt", "fl", "pa"]) if (rec[k].length < NEED[k]) return k; return null; }
 
@@ -181,7 +183,14 @@ function undo() {
   refresh();
 }
 
+function isEmpty(r) { return !r.skip && !r.mt.length && !r.fl.length && !r.pa.length; }
+function isDone(id) { return labels[id] && !isEmpty(labels[id]); }
+
 async function save(advance) {
+  if (isEmpty(rec) && !labels[item.image_id]) {  // nothing drawn: never store a blank record
+    if (advance && qi < queue.length - 1) { qi++; await load(); }
+    return;
+  }
   rec.seconds = Math.round((rec.seconds || 0) + (performance.now() - t0) / 1000); t0 = performance.now();
   const r = await fetch("api/labels/" + encodeURIComponent(item.image_id), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(rec) });
   if (r.ok) { labels[item.image_id] = JSON.parse(JSON.stringify(rec)); dirty = false; status("saved"); } else status("SAVE FAILED " + r.status, true);
@@ -195,7 +204,7 @@ function refresh() {
   $("vmt").textContent = fmt(mt); $("vfl").textContent = fmt(fl); $("vpa").textContent = fmt(pa);
   $("nmt").textContent = `${rec.mt.length}/3`; $("nfl").textContent = `${rec.fl.length}/3`; $("npa").textContent = `${rec.pa.length}/3`;
   for (const k of ["mt", "fl", "pa"]) $("b" + k).classList.toggle("on", mode === k);
-  const done = queue.filter((m) => labels[m.image_id]).length;
+  const done = queue.filter((m) => isDone(m.image_id)).length;
   $("prog").style.width = (100 * done / queue.length) + "%"; $("progtxt").textContent = `${done}/${queue.length}`;
   const clip = item.clip === null ? "" : ` · clip ${item.clip} frame ${item.clip_pos + 1}/5${item.optional ? " (optional)" : ""}`;
   $("imginfo").textContent = `${qi + 1}/${queue.length} · ${item.image_id} · ${item.layout} · ${item.mm_per_pixel.toFixed(4)} mm/px${clip}${rec.skip ? " · SKIPPED" : ""}`;
