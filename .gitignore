@@ -49,3 +49,6 @@ experiments/**
 
 # Third-party skill repos cloned for local reference (installed as plugins; not vendored)
 .claude/skills-src/
+
+# Manual test-image measurements and exported test PNGs: competition data, never commit (repo is public)
+data/labeling/
