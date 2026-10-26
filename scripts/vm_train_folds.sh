@@ -9,7 +9,7 @@
 # for free memory.
 #
 # Usage: nohup bash scripts/vm_train_folds.sh > logs/k5_queue.log 2>&1 &
-#   env: CFG, K, SPLITS_ROOT, CKPT_ROOT, MIN_FREE_MB, MAX_PER_GPU, GPUS, LOG_TAG
+#   env: CFG, K, SPLITS_ROOT, CKPT_ROOT, MIN_FREE_MB, MAX_PER_GPU, GPUS, LOG_TAG, BRANCHES
 set -uo pipefail
 cd /home/azureuser/muscle-arc
 # shellcheck disable=SC1091
@@ -24,6 +24,7 @@ MAX_PER_GPU="${MAX_PER_GPU:-2}"
 GPUS="${GPUS:-}"  # optional space-separated allow-list, e.g. GPUS="0 3"
 POLL_S="${POLL_S:-60}"
 LOG_TAG="${LOG_TAG:-k5}"  # log/done prefix, one per training line
+BRANCHES="${BRANCHES:-fasc apo}"  # branches to train, longest first
 mkdir -p logs "$SPLITS_ROOT" "$CKPT_ROOT"
 
 for f in $(seq 0 $((K - 1))); do
@@ -34,8 +35,9 @@ for f in $(seq 0 $((K - 1))); do
 done
 
 JOBS=()
-for f in $(seq 0 $((K - 1))); do JOBS+=("fasc:$f"); done
-for f in $(seq 0 $((K - 1))); do JOBS+=("apo:$f"); done
+for b in $BRANCHES; do
+  for f in $(seq 0 $((K - 1))); do JOBS+=("$b:$f"); done
+done
 
 declare -A RUNNING_ON  # pid -> gpu index
 
