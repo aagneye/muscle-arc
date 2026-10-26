@@ -138,3 +138,17 @@ def _make_sof_batch() -> tuple[dict, dict]:
         "ori_sin2": torch.zeros(n, h, w),
     }
     return out, batch
+
+
+def test_with_skeleton_recall_prefers_unbroken_prediction() -> None:
+    from muscle_arc.train.loop import TverskyBCELoss
+    from muscle_arc.train.losses import WithSkeletonRecall
+
+    loss = WithSkeletonRecall(TverskyBCELoss(alpha=0.3, beta=0.7), skel_weight=0.3)
+    target = _line_mask()
+    whole = loss(_logits_from_mask(_line_mask()), target)
+    broken = loss(_logits_from_mask(_broken_line_mask()), target)
+    assert math.isfinite(float(whole)) and math.isfinite(float(broken))
+    assert float(whole) < float(broken)
+    # the skeleton term is bounded: without it the two differ only by the Tversky/BCE part
+    assert float(loss.skel(_logits_from_mask(_line_mask()), target)) <= 0.0

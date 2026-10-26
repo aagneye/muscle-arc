@@ -18,6 +18,7 @@ from muscle_arc.data.paths import DataPaths
 from muscle_arc.data.splits import filter_pairs_by_stems, load_split_manifest
 from muscle_arc.models.segmentation import build_segmentation_model
 from muscle_arc.train.gate1_lite import gate1_lite_score
+from muscle_arc.train.losses import WithSkeletonRecall
 from muscle_arc.train.loop import (
     DiceBCELoss,
     TverskyBCELoss,
@@ -148,6 +149,14 @@ def train_branch(
             alpha=float(train_cfg.get("tversky_alpha", 0.4)),
             beta=float(train_cfg.get("tversky_beta", 0.6)),
         )
+    elif loss_name == "tversky_skelrecall":
+        loss_fn = WithSkeletonRecall(  # same Tversky base as "tversky", plus the skeleton term
+            TverskyBCELoss(
+                alpha=float(train_cfg.get("tversky_alpha", 0.4)),
+                beta=float(train_cfg.get("tversky_beta", 0.6)),
+            ),
+            skel_weight=float(train_cfg.get("skel_recall_weight", 0.3)),
+        )
     else:
         loss_fn = DiceBCELoss()
     optimizer = torch.optim.AdamW(
@@ -275,9 +284,9 @@ def main() -> None:
     )
     parser.add_argument(
         "--loss",
-        choices=("dice", "tversky"),
+        choices=("dice", "tversky", "tversky_skelrecall"),
         default=None,
-        help="Fascicle loss (default: tversky). Apo always uses dice.",
+        help="Fascicle loss (default: train.fasc_loss in the config, else tversky). Apo always uses dice.",
     )
     parser.add_argument(
         "--no-letterbox",
@@ -363,7 +372,7 @@ def main() -> None:
 
     if args.branch in ("fasc", "both"):
         print(f"Fasc pairs: {len(fasc_pairs)}")
-        fasc_loss = args.loss or "tversky"
+        fasc_loss = args.loss or str(cfg["train"].get("fasc_loss", "tversky"))
         train_branch(
             "fasc",
             fasc_pairs,

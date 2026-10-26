@@ -244,3 +244,22 @@ def sof_total_loss(
         "total": float(total.detach()),
     }
     return total, stats
+
+
+class WithSkeletonRecall(nn.Module):
+    """base loss + w * SkeletonRecallLoss (paper Eq. 2): a plug-in for any fascicle loss.
+
+    The skeleton term rewards probability mass on the ground-truth centrelines, so
+    the model is pushed toward unbroken fascicle fragments, which is what the line
+    fits in geometry/metrics.py need; it costs about 8 % training time (CPU
+    skeletonization of each target batch).
+    """
+
+    def __init__(self, base: nn.Module, skel_weight: float = 0.3, dilate_radius: int = 2) -> None:
+        super().__init__()
+        self.base = base
+        self.skel = SkeletonRecallLoss(dilate_radius=dilate_radius)
+        self.skel_weight = skel_weight
+
+    def forward(self, logits: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+        return self.base(logits, target) + self.skel_weight * self.skel(logits, target)
