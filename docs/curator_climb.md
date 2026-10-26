@@ -151,3 +151,24 @@ finished; the loss is per-image variance, dominated by FL, which inherits the PA
 through the linear extrapolation (2.8 to 5 mm per degree at PA 15 to 20 deg). MT is at rater
 repeatability. Full analysis and plan: `docs/score_loss_analysis.md`. Queued: per-layout FL
 probes (siemens_right_ruler, left_ruler_5cm), k15 build, 768-px training line.
+
+### Built on 2026-10-26 (no new public scores: the five daily submissions went to the probes)
+
+- `scripts/lb_probe.py`: probe files and exact decode (public subset is about 33 % of
+  the test set, N about 102; a full-set shift cancels N).
+- `scripts/geometry_sweep.py`: `fl_contour` (contour route without the internal 0.5 trig),
+  pure trig variants, `--smooth-w`; re-sweeping k10 reproduces `cand_k10.csv` exactly.
+- `scripts/fuse_measurements.py`: measurement-level fusion (per-image median across runs)
+  with a between-run spread per image, following the challenge evidence in
+  `docs/research/2026-10-26-rater-calibration-and-fusion.md`.
+- `scripts/calibrate_to_labels.py` + `geometry/calibration.py`: per-device gain/offset
+  with partial pooling, gated by leave-one-out, maps saved as JSON (ready for the manual
+  measurements; none made yet).
+- `scripts/train.py`: `tversky_skelrecall` fascicle loss (`configs/dual_v3_skel.yaml`);
+  `configs/dual_v3_768.yaml`; `scripts/vm_train_line.sh` queue launcher with retries.
+- Running on the VM: k15 build, per-seed caches (s2, s3), 768-px fascicle line (GPU 0 after
+  the caches), skeleton-recall fascicle line (GPUs 1-3 when the other project frees one).
+- Scheduled 2026-10-27 00:05 UTC (`scripts/vm_submit_batch.sh`, log
+  `logs/submit_batch_1027.log`): `cand_k15.csv` + FL +-10000 probes on siemens_right_ruler
+  and left_ruler_5cm (base k10). Day after: k15 FL variants (`fl_contour|trig0.5`,
+  `fl_contour|trig0`, `fl_legacy|trig0.25`), clip median, `cand_med3.csv`.
