@@ -172,3 +172,34 @@ probes (siemens_right_ruler, left_ruler_5cm), k15 build, 768-px training line.
   `logs/submit_batch_1027.log`): `cand_k15.csv` + FL +-10000 probes on siemens_right_ruler
   and left_ruler_5cm (base k10). Day after: k15 FL variants (`fl_contour|trig0.5`,
   `fl_contour|trig0`, `fl_legacy|trig0.25`), clip median, `cand_med3.csv`.
+
+## 2026-10-26 (later): visual audit finds an aponeurosis-pairing bug (fixed, behind a flag)
+
+`scripts/overlay_audit.py` renders what the geometry sees (bands, fitted lines, every fascicle
+extrapolation). Per-layout images where the FL estimators disagree most showed that on
+multi-band frames (two stacked muscles, or skin / bone bands detected as aponeurosis):
+
+- the per-column surface fit rejected any muscle thicker than 0.42 of the frame, so clip
+  IMG_00121-00125 measured the muscle *below* (MT 14.5 mm instead of 24.5 mm, FL 70 vs 128 mm);
+- it mixed band pairs across columns (IMG_00047: diagonal lines through no aponeurosis);
+- `_apo_bands` took a 30-px fragment as the deep band (IMG_00045, 00048, 00167, 00303) or
+  skipped a long middle aponeurosis (IMG_00047, PA 21.1 -> 15.7 deg after the fix).
+
+Fix: `_select_band_pair` (`APO_PAIRING = "upper_dense"`, `geometry_sweep.py --apo-pairing`):
+bands spanning >= 20 % of the apo extent, vertically adjacent pairs only, physiological gap,
+uppermost pair with >= half the best fascicle density, used by both PA and the line fit.
+
+| k10 cache | legacy | upper_dense |
+|---|---|---|
+| OSF MT MAE | 0.420 mm | 0.205 mm |
+| OSF PA+2 MAE | 2.00 deg | 1.85 deg |
+| OSF FL MAE (fl_legacy) | 4.29 mm | 3.80 mm |
+| OSF UMUD (pick) | 0.277 | 0.231 |
+| Agreement with the 0.451 anchor | 0.498 | 0.473 |
+
+All 5 OSF images that changed improved (e.g. im_07 MT error 5.4 -> 0.05 mm); 11 of 309 test
+images change materially, all in multi-band layouts; the between-seed FL spread p99 fell from
+14.4 to 6.1 mm. This is a bug fix, not a convention, so OSF is a valid check here. Default
+stays legacy until the board confirms. Batch 2026-10-27 00:05 UTC: `cand_k10ud` (A/B vs
+0.40307), `cand_k15ud`, `cand_med3ud` (median of the 3 seeds' measurements, same 15 fold
+models as k15), FL +-10000 probes on siemens_right_ruler.
