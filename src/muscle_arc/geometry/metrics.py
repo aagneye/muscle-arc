@@ -171,7 +171,7 @@ def _local_apo_tangent(
 # _fit_apo_lines) or "upper_dense" (_select_band_pair for both; see its docstring).
 APO_PAIRING = "legacy"
 PAIR_MIN_WIDTH = 0.20  # band x-extent as a fraction of the apo mask's x-extent
-PAIR_DENS_FRAC = 0.5  # pair must hold >= this share of the densest pair's fascicle density
+PAIR_MASS_FRAC = 0.5  # pair must hold >= this share of the best pair's fascicle mass
 PAIR_GAP_MM = (6.0, 50.0)
 
 
@@ -196,8 +196,10 @@ def _select_band_pair(
     columns where both exist and no other band lies between them, so a long middle
     aponeurosis (two stacked muscles, e.g. GM over SOL, VL over VI) is never skipped, and
     there is no cap on thickness relative to the frame. Pairs need a physiological gap.
-    Among them the uppermost pair whose fascicle density is at least PAIR_DENS_FRAC of the
-    densest pair's wins (host: measure the upper compartment). Returns None when fewer than
+    Among them the uppermost pair whose fascicle mass (fascicle pixels between the bands) is at
+    least PAIR_MASS_FRAC of the best pair's wins (host: measure the upper compartment); mass, not
+    density, so a short band fragment bounding a sliver of muscle loses to the long aponeurosis
+    bounding most of it. Returns None when fewer than
     two bands or no fascicle information exist, so callers fall back to the legacy logic.
     """
     if fasc_mask is None or int(fasc_mask.sum()) < 20:
@@ -242,15 +244,14 @@ def _select_band_pair(
             y0 = bot_a[xs].astype(int) + 1
             y1 = top_b[xs].astype(int)
             count = float((fasc_cs[y1, xs] - fasc_cs[y0, xs]).sum())
-            area = float((y1 - y0).sum())
-            cands.append((float(np.median(0.5 * (y0 + y1))), a, b, count / max(area, 1.0)))
+            cands.append((float(np.median(0.5 * (y0 + y1))), a, b, count))
     if not cands:
         return None
-    dmax = max(c[3] for c in cands)
-    if dmax <= 0:
+    best = max(c[3] for c in cands)
+    if best <= 0:
         return None
-    for _y, a, b, dens in sorted(cands):
-        if dens >= PAIR_DENS_FRAC * dmax:
+    for _y, a, b, mass in sorted(cands):
+        if mass >= PAIR_MASS_FRAC * best:
             return (labels == a).astype(np.uint8), (labels == b).astype(np.uint8)
     return None
 
@@ -686,6 +687,16 @@ def _line_line_intersection(
     return p1 + t * d1
 
 
+PA_TANGENT_AT = "center"  # deep-apo tangent at the fragment centre, or "insertion" (host protocol)
+def _tangent_x(point: np.ndarray, direction: np.ndarray, apo_lines) -> float:
+    """x where the deep-apo tangent is taken: fragment centre, or its insertion into the deep line."""
+    if PA_TANGENT_AT == "insertion" and apo_lines is not None:
+        ins = _line_line_intersection(point, direction, apo_lines[1][0], apo_lines[1][1])
+        if ins is not None and np.isfinite(ins[0]):
+            return float(ins[0])
+    return float(point[0])
+
+
 def pennation_angle_deg(
     fasc_mask: np.ndarray,
     apo_mask: np.ndarray | None = None,
@@ -711,7 +722,7 @@ def pennation_angle_deg(
     weights: list[float] = []
     for point, direction, length in comps:
         if bands is not None:
-            tangent = _local_apo_tangent(bands[1], float(point[0]), edge="inner_top")
+            tangent = _local_apo_tangent(bands[1], _tangent_x(point, direction, apo_lines), edge="inner_top")
             dd = tangent if tangent is not None else dd_global
         else:
             dd = dd_global
@@ -723,7 +734,7 @@ def pennation_angle_deg(
     if not angles and comps:
         for point, direction, length in comps:
             if bands is not None:
-                tangent = _local_apo_tangent(bands[1], float(point[0]), edge="inner_top")
+                tangent = _local_apo_tangent(bands[1], _tangent_x(point, direction, apo_lines), edge="inner_top")
                 dd = tangent if tangent is not None else dd_global
             else:
                 dd = dd_global
@@ -754,6 +765,7 @@ def pennation_angle_deg(
 
     STATS.pa_nan += 1
     return float("nan")
+
 
 
 # Thwaits / SMA blend weight — fixed, never LOO-tuned on OSF
@@ -972,6 +984,54 @@ def fascicle_length_least_extrap_px(
         return float("nan")
     scored.sort(key=lambda t: t[0])
     return float(np.mean([fl for _, fl in scored[: max(1, top_k)]]))
+
+
+def fascicle_length_geo_px(
+    fasc_mask: np.ndarray,
+    apo_mask: np.ndarray,
+    pa_deg: float,
+    fasc_prob: np.ndarray | None = None,
+    gray: np.ndarray | None = None,
+    mm_per_pixel: float | None = None,
+) -> float:
+    """FL by linear extrapolation of one fascicle line at the image's pennation angle.
+
+    The line runs through the belly centre (midway between the two aponeurosis lines, at
+    the length-weighted x of the fascicle fragments) with direction = deep-aponeurosis
+    direction turned by ``pa_deg`` toward the side the fragments lean; FL is the distance
+    between its intersections with the two lines. Unlike MT / sin(PA) it holds for
+    converging aponeuroses, and unlike the per-fragment route one robust angle drives
+    the extrapolation instead of each fragment's own noisy angle.
+    """
+    if pa_deg is None or not np.isfinite(pa_deg) or not 2.0 <= abs(pa_deg) <= 60.0:
+        return float("nan")
+    lines = _fit_apo_lines(apo_mask, fasc_mask=fasc_mask, mm_per_pixel=mm_per_pixel)
+    comps = _fascicle_lines(fasc_mask, fasc_prob=fasc_prob, gray=gray, apo_mask=apo_mask)
+    if lines is None or not comps:
+        return float("nan")
+    (ps, ds), (pd_, dd) = lines
+    dd = dd if dd[0] >= 0 else -dd
+    lean = 0.0
+    x_num = x_den = 0.0
+    for point, direction, length in comps:
+        d = direction if direction[0] >= 0 else -direction
+        lean += length * np.sign(dd[0] * d[1] - dd[1] * d[0])
+        x_num += length * float(point[0])
+        x_den += length
+    th = np.radians(abs(pa_deg)) * (1.0 if lean >= 0 else -1.0)
+    f = np.array([np.cos(th) * dd[0] - np.sin(th) * dd[1], np.sin(th) * dd[0] + np.cos(th) * dd[1]])
+    x = x_num / max(x_den, 1e-9)
+    ys = [float(p[1] + (x - p[0]) / d[0] * d[1]) for p, d in ((ps, ds), (pd_, dd)) if abs(d[0]) > 1e-6]
+    if len(ys) != 2:
+        return float("nan")
+    anchor = np.array([x, 0.5 * (ys[0] + ys[1])])
+    a = _line_line_intersection(anchor, f, ps, ds)
+    b = _line_line_intersection(anchor, f, pd_, dd)
+    if a is None or b is None:
+        return float("nan")
+    fl = float(np.linalg.norm(a - b))
+    h, w = apo_mask.shape
+    return fl if 2.0 < fl < 3.0 * float(np.hypot(h, w)) else float("nan")
 
 
 def _estimate_host_v1(
