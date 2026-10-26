@@ -29,6 +29,7 @@ from muscle_arc.data.paths import DataPaths
 from muscle_arc.geometry import metrics as geom
 from muscle_arc.geometry.calibration import apply_calibration, fit_linear_calibration, loo_gain
 from muscle_arc.geometry.metrics import (
+    fascicle_length_geo_px,
     fascicle_length_least_extrap_px,
     fascicle_length_px,
     muscle_thickness_px,
@@ -40,9 +41,10 @@ from muscle_arc.geometry.surfaces import extract_apo_surfaces
 
 PA_OFFSETS = (0.0, 1.0, 2.0, 3.0)
 # fl_legacy already holds 0.5 trig (raw PA) + 0.5 contour inside fascicle_length_px;
-# fl_contour is the same route with the internal trig weight set to 0.
+# fl_contour is the same route with the internal trig weight set to 0; fl_geo / fl_geo2 extrapolate
+# one line at the raw / +2 deg PA between the two aponeurosis lines (fascicle_length_geo_px).
 TRIG_W = (0.0, 0.25, 0.5, 0.75)
-FL_BASES = ("fl_legacy", "fl_contour", "fl_le3", "fl_le5")
+FL_BASES = ("fl_legacy", "fl_contour", "fl_geo", "fl_geo2", "fl_le3", "fl_le5")
 TOL = {"pa_deg": 6.0, "fl_mm": 12.0, "mt_mm": 3.0}
 CLIP = {"pa_deg": (5.0, 45.0), "fl_mm": (30.0, 200.0), "mt_mm": (10.0, 50.0)}
 
@@ -72,6 +74,12 @@ def measure_one(job: tuple[str, str, str, float, float]) -> dict:
     mt_host = mt_host_protocol(surf) if surf is not None else nan
     pa_leg = pennation_angle_deg(fasc, apo, fasc_prob=fasc_p, gray=gray, mm_per_pixel=mm)
     pa_nor = pennation_angle_deg(fasc, apo, fasc_prob=fasc_p, gray=None, mm_per_pixel=mm)
+    at = geom.PA_TANGENT_AT
+    try:
+        geom.PA_TANGENT_AT = "insertion"  # tangent where each fragment meets the deep apo
+        pa_ins = pennation_angle_deg(fasc, apo, fasc_prob=fasc_p, gray=gray, mm_per_pixel=mm)
+    finally:
+        geom.PA_TANGENT_AT = at
     fl_kw = dict(fasc_prob=fasc_p, gray=gray, pa_deg=pa_leg if np.isfinite(pa_leg) else None,
                  mt_px=mt_leg if np.isfinite(mt_leg) else None, mm_per_pixel=mm)
     fl_leg = fascicle_length_px(fasc, apo, **fl_kw)
@@ -81,14 +89,17 @@ def measure_one(job: tuple[str, str, str, float, float]) -> dict:
         fl_con = fascicle_length_px(fasc, apo, **fl_kw)
     finally:
         geom.FL_BLEND_TRIG = blend
+    fl_geo = fascicle_length_geo_px(fasc, apo, pa_leg, fasc_prob=fasc_p, gray=gray, mm_per_pixel=mm)
+    fl_geo2 = fascicle_length_geo_px(fasc, apo, pa_leg + 2.0, fasc_prob=fasc_p, gray=gray, mm_per_pixel=mm)
     fl_le3 = fascicle_length_least_extrap_px(fasc, apo, fasc_prob=fasc_p, top_k=3, mm_per_pixel=mm)
     fl_le5 = fascicle_length_least_extrap_px(fasc, apo, fasc_prob=fasc_p, top_k=5, mm_per_pixel=mm)
     px = lambda v: float(v) * mm if np.isfinite(v) else nan  # noqa: E731
     return {
         "image_id": image_id, "mm_per_pixel": mm,
         "mt_legacy": px(mt_leg), "mt_host": px(mt_host),
-        "pa_legacy": float(pa_leg), "pa_noradon": float(pa_nor),
-        "fl_legacy": px(fl_leg), "fl_contour": px(fl_con), "fl_le3": px(fl_le3), "fl_le5": px(fl_le5),
+        "pa_legacy": float(pa_leg), "pa_noradon": float(pa_nor), "pa_ins": float(pa_ins),
+        "fl_legacy": px(fl_leg), "fl_contour": px(fl_con), "fl_geo": px(fl_geo), "fl_geo2": px(fl_geo2),
+        "fl_le3": px(fl_le3), "fl_le5": px(fl_le5),
     }
 
 
@@ -107,7 +118,9 @@ def build_variants(m: pd.DataFrame, groups: list[list[int]] | None) -> dict[str,
     out: dict[str, dict[str, pd.Series]] = {"pa_deg": {}, "fl_mm": {}, "mt_mm": {}}
     for mt_name in ("mt_legacy", "mt_host"):
         out["mt_mm"][mt_name] = _fill(m[mt_name], groups).clip(*CLIP["mt_mm"])
-    for pa_name in ("pa_legacy", "pa_noradon"):
+    for pa_name in ("pa_legacy", "pa_noradon", "pa_ins"):
+        if pa_name not in m.columns:  # measures written before pa_ins existed
+            continue
         base = _fill(m[pa_name], groups)
         for off in PA_OFFSETS:
             out["pa_deg"][f"{pa_name}+{off:g}"] = (base + off).clip(*CLIP["pa_deg"])
