@@ -77,15 +77,23 @@ means the fix must be generic (segmentation detail, fascicle choice).
 
 | Line | Expected public | Status |
 |---|---|---|
-| Manual host-protocol measurements of the test images: `scripts/eval_local.py` ranks candidates, then per-device calibration and training targets (declared external data) | 0.25 to 0.30 | tool live on the VM, no images measured yet |
-| 768-px dual U-Net 5-fold line (`configs/dual_v3_768.yaml`): most training frames are 1200x800 or 1640x1080, 512-px letterboxing halves fascicle detail | -0.01 to -0.03 | training queued 2026-10-26 (`scripts/vm_train_line.sh k768 ...`) |
-| k15 (3 seeds x 5 folds, 30 models) | -0.005 to -0.01 | building (`logs/build_k15.log`) |
-| Trig-blend check (`fl_legacy` with trig weight 0.5 on the k15 masks) | about +-0.01 | one submission after k15 |
-| Measurement-level fusion: median of per-seed (PA, FL, MT) with a consensus outlier rule instead of averaging probability maps | -0.01 to -0.02 | needs per-seed caches (s2, s3), CPU sweep |
-| Accumulator-weighted median PA over many fascicle orientations (TimTrack) as a further PA estimator | -0.005 to -0.02 (plus FL) | geometry variant, no GPU |
-| Fascicle branch with Skeleton Recall loss (fewer broken fragments, +8 % train time) | unknown | after the 768 line |
-| Per-layout FL / PA probes | diagnosis | 4 files queued |
+| Manual host-protocol measurements of the test images: `scripts/eval_local.py` ranks candidates, then per-device calibration (`scripts/calibrate_to_labels.py`) and training targets (declared external data) | 0.25 to 0.30 | tool live on the VM, no images measured yet |
+| **Aponeurosis pairing fix** (`--apo-pairing upper_dense`, found by `scripts/overlay_audit.py`): multi-band frames measured the wrong muscle or mixed band pairs (11 test images, e.g. clip 00121-00125 MT 14.5 -> 24.5 mm) | -0.01 to -0.03 | OSF UMUD 0.277 -> 0.231; on the board 2026-10-27 (`cand_k10ud` A/B vs 0.40307) |
+| k15 (3 seeds x 5 folds, 30 models) | -0.005 to -0.01 | built; `cand_k15ud` on the board 2026-10-27 |
+| Measurement-level fusion: median of the per-seed measurements (same 15 fold models) | -0.005 to -0.02 | built; `cand_med3ud` on the board 2026-10-27 |
+| 768-px fascicle branch 5-fold line (`configs/dual_v3_768.yaml`) | -0.01 to -0.03 | training on GPU 0 (fold 1 of 5 at 07:11 UTC) |
+| Fascicle branch with Skeleton Recall loss (`configs/dual_v3_skel.yaml`) | unknown | queued, waits for GPUs 1-3 (other project) |
+| FL convention on the board: contour only, more trig, clip median | +-0.01 each | prebuilt on k15ud for 2026-10-28 |
+| Per-layout FL probes | diagnosis | siemens pair 2026-10-27, left_ruler pair after |
 | Merge with the leader recruiting GPU partners (thread 749906) | top 3 | owner's call |
+
+Tried and dropped on 2026-10-26 (local evidence, no submission spent):
+- `fascicle_length_geo_px`, one line at the image PA extrapolated to both aponeuroses: OSF
+  7.4 mm, anchor 8.7 mm vs 3.7 / 7.9 for the current FL; FL moves about 5 mm per degree of
+  PA, so a single angle amplifies the PA error instead of averaging it.
+- PA with the deep-aponeurosis tangent at the fragment's insertion point
+  (`PA_TANGENT_AT = "insertion"`): OSF 1.65 deg and anchor 3.20 deg vs 1.37 / 2.58; the
+  extrapolated quadratic edge gives unstable tangents.
 
 ## 6. Research digest (2026-10-26) and what it changes
 
