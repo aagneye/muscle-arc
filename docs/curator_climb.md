@@ -134,3 +134,20 @@ manual test labels + calibration, Line C merger).
 - `scripts/eval_local.py` = local replica of the public score against those measurements;
   candidates are ranked locally before Kaggle.
 - Seed 3 of the dual U-Net ensemble queued (`configs/dual_v3_s3.yaml`).
+
+## 2026-10-26: leaderboard probe decomposition of k10 (0.40307)
+
+Five one-parameter-shift probes of `cand_k10.csv` (PA +-100 deg, FL +-1000 mm, MT +100 mm
+scored 5.85605 / 5.81660 / 27.90299 / 27.98273 / 11.44966). Decoded with `scripts/lb_probe.py`:
+
+| Parameter | MAE | Bias | Share of score |
+|---|---|---|---|
+| PA | 2.20 deg | +0.36 deg | 30 % |
+| FL | 8.57 mm | -1.44 mm | 59 % |
+| MT | 0.385 mm | -0.20 mm | 11 % |
+
+Lesson: biases are worth about 0.003 in total, so offsets and global calibration are
+finished; the loss is per-image variance, dominated by FL, which inherits the PA error
+through the linear extrapolation (2.8 to 5 mm per degree at PA 15 to 20 deg). MT is at rater
+repeatability. Full analysis and plan: `docs/score_loss_analysis.md`. Queued: per-layout FL
+probes (siemens_right_ruler, left_ruler_5cm), k15 build, 768-px training line.
