@@ -167,6 +167,94 @@ def _local_apo_tangent(
     return _normalize(np.array([1.0, dy], dtype=np.float64))
 
 
+# Band pairing: "legacy" (component scoring in _apo_bands, per-column surfaces in
+# _fit_apo_lines) or "upper_dense" (_select_band_pair for both; see its docstring).
+APO_PAIRING = "legacy"
+PAIR_MIN_WIDTH = 0.20  # band x-extent as a fraction of the apo mask's x-extent
+PAIR_DENS_FRAC = 0.5  # pair must hold >= this share of the densest pair's fascicle density
+PAIR_GAP_MM = (6.0, 50.0)
+
+
+def _band_profiles(mask: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Per-column top and bottom row of a binary band (NaN where the column is empty)."""
+    h = mask.shape[0]
+    has = mask.any(axis=0)
+    top = np.where(has, mask.argmax(axis=0), np.nan).astype(np.float64)
+    bot = np.where(has, h - 1 - mask[::-1].argmax(axis=0), np.nan).astype(np.float64)
+    return top, bot
+
+
+def _select_band_pair(
+    apo_mask: np.ndarray,
+    fasc_mask: np.ndarray | None = None,
+    mm_per_pixel: float | None = None,
+) -> tuple[np.ndarray, np.ndarray] | None:
+    """Superficial / deep aponeurosis of the upper muscle compartment that holds fascicles.
+
+    Bands are apo components spanning at least PAIR_MIN_WIDTH of the apo mask's x-extent
+    (fragments cannot become an aponeurosis). Two bands form a candidate pair only in the
+    columns where both exist and no other band lies between them, so a long middle
+    aponeurosis (two stacked muscles, e.g. GM over SOL, VL over VI) is never skipped, and
+    there is no cap on thickness relative to the frame. Pairs need a physiological gap.
+    Among them the uppermost pair whose fascicle density is at least PAIR_DENS_FRAC of the
+    densest pair's wins (host: measure the upper compartment). Returns None when fewer than
+    two bands or no fascicle information exist, so callers fall back to the legacy logic.
+    """
+    if fasc_mask is None or int(fasc_mask.sum()) < 20:
+        return None
+    binary = (apo_mask > 0).astype(np.uint8)
+    h, w = binary.shape
+    n, labels, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
+    cols = np.flatnonzero(binary.any(axis=0))
+    if n < 3 or len(cols) == 0:
+        return None
+    w_eff = float(cols[-1] - cols[0] + 1)
+    bands = [lab for lab in range(1, n)
+             if stats[lab, cv2.CC_STAT_AREA] >= 30 and stats[lab, cv2.CC_STAT_WIDTH] >= PAIR_MIN_WIDTH * w_eff]
+    if len(bands) < 2:
+        return None
+    prof = {lab: _band_profiles(labels == lab) for lab in bands}
+    fasc_cs = np.vstack([np.zeros((1, w)), np.cumsum(fasc_mask > 0, axis=0)])
+
+    cands: list[tuple[float, int, int, float]] = []  # (centre y of the upper band, a, b, density)
+    for a in bands:
+        for b in bands:
+            if a == b:
+                continue
+            _top_a, bot_a = prof[a]
+            top_b, _bot_b = prof[b]
+            ok = np.isfinite(bot_a) & np.isfinite(top_b) & (top_b > bot_a + 2)
+            for c in bands:
+                if c in (a, b):
+                    continue
+                top_c, bot_c = prof[c]
+                with np.errstate(invalid="ignore"):
+                    ok &= ~(np.isfinite(top_c) & (top_c > bot_a) & (bot_c < top_b))
+            xs = np.flatnonzero(ok)
+            if len(xs) < 0.15 * w_eff:
+                continue
+            gap = float(np.median(top_b[xs] - bot_a[xs]))
+            if mm_per_pixel:
+                if not PAIR_GAP_MM[0] <= gap * float(mm_per_pixel) <= PAIR_GAP_MM[1]:
+                    continue
+            elif gap < 0.04 * h:
+                continue
+            y0 = bot_a[xs].astype(int) + 1
+            y1 = top_b[xs].astype(int)
+            count = float((fasc_cs[y1, xs] - fasc_cs[y0, xs]).sum())
+            area = float((y1 - y0).sum())
+            cands.append((float(np.median(0.5 * (y0 + y1))), a, b, count / max(area, 1.0)))
+    if not cands:
+        return None
+    dmax = max(c[3] for c in cands)
+    if dmax <= 0:
+        return None
+    for _y, a, b, dens in sorted(cands):
+        if dens >= PAIR_DENS_FRAC * dmax:
+            return (labels == a).astype(np.uint8), (labels == b).astype(np.uint8)
+    return None
+
+
 def _apo_bands(
     apo_mask: np.ndarray,
     fasc_mask: np.ndarray | None = None,
@@ -177,7 +265,13 @@ def _apo_bands(
     Do NOT reward vertical separation — that picks skin-to-bone on 3-band
     console screenshots. Score by fascicle mass contained between bands,
     physiological MT when scale is known, and prefer the narrower belly pair.
+    With APO_PAIRING = "upper_dense" the pair comes from _select_band_pair when it
+    finds one.
     """
+    if APO_PAIRING == "upper_dense":
+        sel = _select_band_pair(apo_mask, fasc_mask=fasc_mask, mm_per_pixel=mm_per_pixel)
+        if sel is not None and _bands_sane(sel[0], sel[1], apo_mask.shape[0]):
+            return sel
     binary = (apo_mask > 0).astype(np.uint8)
     h, _w = binary.shape
     n, labels, stats, centroids = cv2.connectedComponentsWithStats(binary, connectivity=8)
@@ -295,10 +389,15 @@ def _fit_apo_lines(
     mm_per_pixel: float | None = None,
 ) -> tuple[tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray]] | None:
     """Return ((p_s, d_s), (p_d, d_d)) for superficial and deep apo lines."""
+    src = apo_mask
+    if APO_PAIRING == "upper_dense":
+        sel = _select_band_pair(apo_mask, fasc_mask=fasc_mask, mm_per_pixel=mm_per_pixel)
+        if sel is not None:  # fit only the selected pair: no mixing of stacked muscles
+            src = (sel[0] | sel[1]).astype(np.uint8)
     try:
         from muscle_arc.geometry.surfaces import extract_apo_surfaces, line_from_surface
 
-        surfaces = extract_apo_surfaces(apo_mask, fasc_mask=fasc_mask, degree=2)
+        surfaces = extract_apo_surfaces(src, fasc_mask=fasc_mask, degree=2)
         if surfaces is not None:
             line_s = line_from_surface(surfaces, "super")
             line_d = line_from_surface(surfaces, "deep")
