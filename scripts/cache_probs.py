@@ -56,8 +56,13 @@ def cache_items(
     tta_hflip: bool = True,
     multiscale: bool = False,
     overwrite: bool = False,
+    apo_img_size: int | None = None,
 ) -> int:
-    """Write one npz per item; return how many were written (existing files skipped)."""
+    """Write one npz per item; return how many were written (existing files skipped).
+
+    ``img_size`` is the fascicle models' input size; apo models may be trained at
+    another size (``apo_img_size``, default the same).
+    """
     out_dir.mkdir(parents=True, exist_ok=True)
     for m in (*apo_models, *fasc_models):
         m.eval()
@@ -66,7 +71,7 @@ def cache_items(
         dst = out_dir / f"{image_id}.npz"
         if dst.exists() and not overwrite:
             continue
-        apo = _mean_prob(apo_models, gray, img_size, device, tta_hflip, multiscale)
+        apo = _mean_prob(apo_models, gray, apo_img_size or img_size, device, tta_hflip, multiscale)
         fasc = _mean_prob(fasc_models, gray, img_size, device, tta_hflip, multiscale)
         np.savez_compressed(
             dst,
@@ -125,6 +130,8 @@ def main(argv: Sequence[str] | None = None) -> None:
     ap.add_argument("--device", default="cuda" if torch.cuda.is_available() else "cpu")
     ap.add_argument("--multiscale", action="store_true")
     ap.add_argument("--overwrite", action="store_true")
+    ap.add_argument("--apo-img-size", type=int, default=None,
+                    help="input size of the apo checkpoints when they differ from the config (e.g. 512 apo + 768 fasc)")
     args = ap.parse_args(argv)
 
     cfg = yaml.safe_load(args.config.read_text())
@@ -134,7 +141,7 @@ def main(argv: Sequence[str] | None = None) -> None:
     items = test_items(cfg, args.scale_table) if args.images == "test" else osf_items(args.osf_gt)
     out = args.out_root / args.tag / args.images
     n = cache_items(items, apo, fasc, img_size=int(cfg["img_size"]), device=device, out_dir=out,
-                    multiscale=args.multiscale, overwrite=args.overwrite)
+                    multiscale=args.multiscale, overwrite=args.overwrite, apo_img_size=args.apo_img_size)
     print(f"wrote {n} new / {len(items)} total -> {out}")
 
 
