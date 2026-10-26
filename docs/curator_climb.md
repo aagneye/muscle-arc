@@ -203,3 +203,7 @@ images change materially, all in multi-band layouts; the between-seed FL spread 
 stays legacy until the board confirms. Batch 2026-10-27 00:05 UTC: `cand_k10ud` (A/B vs
 0.40307), `cand_k15ud`, `cand_med3ud` (median of the 3 seeds' measurements, same 15 fold
 models as k15), FL +-10000 probes on siemens_right_ruler.
+- Null result: dropping fascicle fragments that lean against the pennation (majority-lean
+  filter) moves PA by 0.01 deg on average (3 of 309 test images > 0.5 deg, OSF unchanged);
+  opposite-lean fragments are rare in our masks and do not explain the +2 deg offset. Reverted.
+- Labeler quick mode: one line of each kind per image, to get more images measured.
