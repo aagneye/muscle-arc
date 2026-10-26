@@ -26,6 +26,7 @@ import yaml
 
 from muscle_arc.data.dataset import list_images, read_gray
 from muscle_arc.data.paths import DataPaths
+from muscle_arc.geometry import metrics as geom
 from muscle_arc.geometry.calibration import apply_calibration, fit_linear_calibration, loo_gain
 from muscle_arc.geometry.metrics import (
     fascicle_length_least_extrap_px,
@@ -38,7 +39,10 @@ from muscle_arc.geometry.sector_crop import mask_chrome
 from muscle_arc.geometry.surfaces import extract_apo_surfaces
 
 PA_OFFSETS = (0.0, 1.0, 2.0, 3.0)
-TRIG_W = (0.0, 0.25, 0.5)
+# fl_legacy already holds 0.5 trig (raw PA) + 0.5 contour inside fascicle_length_px;
+# fl_contour is the same route with the internal trig weight set to 0.
+TRIG_W = (0.0, 0.25, 0.5, 0.75)
+FL_BASES = ("fl_legacy", "fl_contour", "fl_le3", "fl_le5")
 TOL = {"pa_deg": 6.0, "fl_mm": 12.0, "mt_mm": 3.0}
 CLIP = {"pa_deg": (5.0, 45.0), "fl_mm": (30.0, 200.0), "mt_mm": (10.0, 50.0)}
 
@@ -68,11 +72,15 @@ def measure_one(job: tuple[str, str, str, float, float]) -> dict:
     mt_host = mt_host_protocol(surf) if surf is not None else nan
     pa_leg = pennation_angle_deg(fasc, apo, fasc_prob=fasc_p, gray=gray, mm_per_pixel=mm)
     pa_nor = pennation_angle_deg(fasc, apo, fasc_prob=fasc_p, gray=None, mm_per_pixel=mm)
-    fl_leg = fascicle_length_px(
-        fasc, apo, fasc_prob=fasc_p, gray=gray,
-        pa_deg=pa_leg if np.isfinite(pa_leg) else None,
-        mt_px=mt_leg if np.isfinite(mt_leg) else None, mm_per_pixel=mm,
-    )
+    fl_kw = dict(fasc_prob=fasc_p, gray=gray, pa_deg=pa_leg if np.isfinite(pa_leg) else None,
+                 mt_px=mt_leg if np.isfinite(mt_leg) else None, mm_per_pixel=mm)
+    fl_leg = fascicle_length_px(fasc, apo, **fl_kw)
+    blend = geom.FL_BLEND_TRIG
+    try:
+        geom.FL_BLEND_TRIG = 0.0  # contour route only (intersection + edge fits)
+        fl_con = fascicle_length_px(fasc, apo, **fl_kw)
+    finally:
+        geom.FL_BLEND_TRIG = blend
     fl_le3 = fascicle_length_least_extrap_px(fasc, apo, fasc_prob=fasc_p, top_k=3, mm_per_pixel=mm)
     fl_le5 = fascicle_length_least_extrap_px(fasc, apo, fasc_prob=fasc_p, top_k=5, mm_per_pixel=mm)
     px = lambda v: float(v) * mm if np.isfinite(v) else nan  # noqa: E731
@@ -80,7 +88,7 @@ def measure_one(job: tuple[str, str, str, float, float]) -> dict:
         "image_id": image_id, "mm_per_pixel": mm,
         "mt_legacy": px(mt_leg), "mt_host": px(mt_host),
         "pa_legacy": float(pa_leg), "pa_noradon": float(pa_nor),
-        "fl_legacy": px(fl_leg), "fl_le3": px(fl_le3), "fl_le5": px(fl_le5),
+        "fl_legacy": px(fl_leg), "fl_contour": px(fl_con), "fl_le3": px(fl_le3), "fl_le5": px(fl_le5),
     }
 
 
@@ -106,7 +114,11 @@ def build_variants(m: pd.DataFrame, groups: list[list[int]] | None) -> dict[str,
     mt_ref = out["mt_mm"]["mt_legacy"]
     pa_ref = out["pa_deg"]["pa_legacy+2"]
     trig = (mt_ref / np.sin(np.radians(pa_ref))).clip(*CLIP["fl_mm"])
-    for fl_name in ("fl_legacy", "fl_le3", "fl_le5"):
+    out["fl_mm"]["fl_trig"] = trig  # pure MT / sin(PA + 2)
+    out["fl_mm"]["fl_trig_raw"] = (mt_ref / np.sin(np.radians(out["pa_deg"]["pa_legacy+0"]))).clip(*CLIP["fl_mm"])
+    for fl_name in FL_BASES:
+        if fl_name not in m.columns:  # measures written before fl_contour existed
+            continue
         base = _fill(m[fl_name], groups)
         for w in TRIG_W:
             out["fl_mm"][f"{fl_name}|trig{w:g}"] = ((1 - w) * base + w * trig).clip(*CLIP["fl_mm"])
@@ -114,6 +126,7 @@ def build_variants(m: pd.DataFrame, groups: list[list[int]] | None) -> dict[str,
 
 
 def smooth_groups(s: pd.Series, groups: list[list[int]], w: float = 0.5) -> pd.Series:
+    """Pull each clip frame toward its clip median (w = 1 is the plain clip median)."""
     s = s.copy()
     for g in groups:
         med = float(s.iloc[g].median())
@@ -157,6 +170,8 @@ def main() -> None:
     ap.add_argument("--calibrate", action="store_true",
                     help="apply OSF-fitted linear calibration per parameter when LOO helps")
     ap.add_argument("--shrink", type=float, default=0.5)
+    ap.add_argument("--smooth-w", type=float, default=0.5,
+                    help="clip smoothing weight toward the clip median (1 = clip median)")
     args = ap.parse_args()
 
     cfg = yaml.safe_load(args.config.read_text())
@@ -212,7 +227,7 @@ def main() -> None:
             series = vt[p][v]
             if p in calib:
                 series = pd.Series(apply_calibration(series.to_numpy(), *calib[p])).clip(*CLIP[p])
-            sub[p] = smooth_groups(series, groups).round(4)
+            sub[p] = smooth_groups(series, groups, w=args.smooth_w).round(4)
         sub[["image_id", "pa_deg", "fl_mm", "mt_mm"]].to_csv(args.write_candidate, index=False)
         print(f"wrote {args.write_candidate} ({len(sub)} rows)")
 
