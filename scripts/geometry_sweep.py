@@ -154,6 +154,11 @@ def _groups_for(paths: list[Path]) -> list[list[int]]:
     return [g for g in cal.sequence_groups(paths) if len(g) > 1]
 
 
+def _set_pairing(mode: str) -> None:
+    """Pool initializer: the pairing switch must be set inside every worker."""
+    geom.APO_PAIRING = mode
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--config", type=Path, default=Path("configs/dual_v3.yaml"))
@@ -172,6 +177,9 @@ def main() -> None:
     ap.add_argument("--shrink", type=float, default=0.5)
     ap.add_argument("--smooth-w", type=float, default=0.5,
                     help="clip smoothing weight toward the clip median (1 = clip median)")
+    ap.add_argument("--apo-pairing", choices=("legacy", "upper_dense"), default="legacy",
+                    help="aponeurosis pair selection (geometry/metrics.py APO_PAIRING)")
+    ap.add_argument("--out-tag", default=None, help="name for the output files (default: --tag)")
     args = ap.parse_args()
 
     cfg = yaml.safe_load(args.config.read_text())
@@ -184,10 +192,10 @@ def main() -> None:
              args.apo_thr, args.fasc_thr) for r in osf.itertuples()]
     tjobs = [(p.name, str(cache / "test" / f"{p.name}.npz"), str(p), args.apo_thr, args.fasc_thr)
              for p in test_paths]
-    with Pool(args.procs) as pool:
+    with Pool(args.procs, initializer=_set_pairing, initargs=(args.apo_pairing,)) as pool:
         mo = pd.DataFrame(pool.map(measure_one, jobs))
         mt = pd.DataFrame(pool.map(_measure_test, tjobs))
-    stem = f"experiments/geometry_sweep_{args.tag}"
+    stem = f"experiments/geometry_sweep_{args.out_tag or args.tag}"
     mo.to_csv(f"{stem}_osf_measures.csv", index=False)
     mt.to_csv(f"{stem}_test_measures.csv", index=False)
 
