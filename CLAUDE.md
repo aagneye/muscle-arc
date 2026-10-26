@@ -26,7 +26,8 @@ until it is reached; do not stop at intermediate wins.
    another project's processes; queue behind them (`scripts/vm_train_folds.sh` waits for
    free memory).
 5. **Record every result** (local and public) in `docs/curator_climb.md` with the lesson.
-6. Atomic commits: one logical change, `<type>(<file>): <description>`.
+6. Atomic commits: one logical change, `<type>(<file>): <description>`. Commits are authored by
+   aagneye only: no `Co-Authored-By` or other Claude attribution line in commit messages.
 
 ## Hard guardrails
 
