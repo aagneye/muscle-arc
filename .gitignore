@@ -52,3 +52,6 @@ experiments/**
 
 # Manual test-image measurements and exported test PNGs: competition data, never commit (repo is public)
 data/labeling/
+
+# External data (DL_Track weights, OSF benchmark): never commit anything under data/
+data/external/
