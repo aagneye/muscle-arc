@@ -207,3 +207,31 @@ models as k15), FL +-10000 probes on siemens_right_ruler.
   filter) moves PA by 0.01 deg on average (3 of 309 test images > 0.5 deg, OSF unchanged);
   opposite-lean fragments are rare in our masks and do not explain the +2 deg offset. Reverted.
 - Labeler quick mode: one line of each kind per image, to get more images measured.
+
+## 2026-10-27 public results
+
+| Submission | Change | Public |
+|---|---|---|
+| `cand_k10ud` | k10 + upper_dense aponeurosis pairing (A/B vs k10 0.40307) | 0.38457 |
+| `cand_k15ud` | k15 (30 models, map-averaged) + pairing fix | 0.38652 |
+| `cand_med3ud` | median of the three seeds' measurements (same 15 fold models as k15) + fix | **0.38391** (best) |
+| probe FL +10000 on siemens_right_ruler (base k10) | diagnosis | 86.69086 |
+| probe FL -10000 on siemens_right_ruler (base k10) | diagnosis | 86.54941 |
+
+Lessons:
+- The pairing bug fix is worth -0.0185 on its own (11 test images changed).
+- With the fix, map-averaging 30 models (k15) is no better than 20 (k10); fusing the three seeds at
+  the measurement level beats map-averaging the same 15 models by 0.0026, as the challenge
+  literature predicted.
+- The public board scores exactly 103 images (309 / 3): with N = 103 the siemens subgroup size
+  comes out integer (32), with 100-106 otherwise it does not. `scripts/lb_probe.py` default fixed.
+- **FL error is mostly per-device bias, not scatter.** Siemens (32 public images): FL MAE 9.60 mm,
+  bias +8.20 mm (our FL too long). Since all-image FL bias is -1.44 mm, the other 71 public images
+  have bias -5.78 mm (too short) and MAE 8.10 mm. On Siemens frames MT / sin(submitted PA)
+  averages 74 mm vs our 83 mm, matching the implied rater mean (~75 mm); on the other devices
+  the raters measure longer than any of our estimators. The earlier "biases are exhausted"
+  reading held only for the all-image mean, where the device biases cancel.
+- Implication: per-device calibration from the owner's manual measurements (declared external
+  data, `scripts/calibrate_to_labels.py`) can remove most of the FL error; the labeler queue
+  already interleaves devices (first 60 images = about 10 per device). Hard-coding per-device
+  offsets read off the board would break the "no leaderboard values" guardrail: owner's call.

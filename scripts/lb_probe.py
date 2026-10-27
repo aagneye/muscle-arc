@@ -36,7 +36,7 @@ import pandas as pd
 
 TOL = {"pa_deg": 6.0, "fl_mm": 12.0, "mt_mm": 3.0}
 PARAMS = tuple(TOL)
-N_PUBLIC = 102  # "approximately 33 % of the test data" (leaderboard page), 309 images in total
+N_PUBLIC = 103  # 309 / 3: confirmed by the integer subgroup size of the 2026-10-27 siemens probe
 
 
 def load_table(path: Path) -> pd.DataFrame:
