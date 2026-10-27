@@ -67,6 +67,7 @@
       <p><b style="color:var(--fl)">2 Fascicles, 3 fibres:</b> start on the deep aponeurosis, click along a clearly visible fascicle (up to 2 bends), end on the superficial aponeurosis. Extend past the image edge into the grey margin if the fibre leaves the frame. <kbd>Enter</kbd> or double-click finishes. Prefer fibres needing the least extension, in the middle of the image.</p>
       <p><b style="color:var(--pa)">3 Angles, 3 angles:</b> 2 clicks along a fascicle where it meets the deep aponeurosis, then 2 clicks along the deep aponeurosis at that spot.</p>
       <p class="muted">If the image shows more than two aponeuroses, measure the upper (superficial) muscle.</p>
+      <p><b style="color:var(--fl)">Quick mode, step 2:</b> 2 clicks along one clear fibre near the lower line, 2 clicks along the upper line, 2 clicks along the lower line. The tool extends the fibre to both lines (FL) and takes the angle to the lower line (PA).</p>
       <p class="muted">Quick mode asks for one line of each kind. For calibrating the model, more measured images matter more than more lines per image.</p>
     </details>
     <details><summary>Keys</summary>
@@ -142,7 +143,13 @@ function draw() {
   rec.mt.forEach((l) => line(l, getCss("--mt")));
   rec.fl.forEach((l) => line(l, getCss("--fl")));
   rec.pa.forEach((a) => { line(a.fasc, getCss("--pa")); line(a.apo, getCss("--apo")); });
-  if (pending.length && mouse) {
+  if (mode === "fl" && quick() && pending.length) {
+    const cols = [getCss("--fl"), getCss("--apo"), getCss("--apo")];
+    for (let i = 0; i < pending.length; i += 2) {
+      const pair = pending.slice(i, i + 2); if (pair.length === 1 && mouse) pair.push(mouse);
+      line(pair, cols[i / 2], pair.length === 2 && i + 1 >= pending.length ? 1.5 : 2.5, i + 1 >= pending.length ? [5, 4] : []);
+    }
+  } else if (pending.length && mouse) {
     const color = mode === "mt" ? getCss("--mt") : mode === "fl" ? getCss("--fl") : (paStage() === "apo" ? getCss("--apo") : getCss("--pa"));
     const live = [...currentPendingPts(), snap(mouse)];
     line(live, color, 1.5, [5, 4]);
@@ -161,6 +168,9 @@ function addPoint(p) {
   if (mode === "mt") {
     pending.push(snap(p));
     if (pending.length === 2) { rec.mt.push(round(pending)); pending = []; afterShape(); }
+  } else if (mode === "fl" && quick()) {
+    pending.push(p);
+    if (pending.length === 6) finishEasy();
   } else if (mode === "fl") {
     pending.push(p);
     if (pending.length === 4) finishFascicle();
@@ -170,7 +180,25 @@ function addPoint(p) {
   }
   refresh();
 }
+// quick mode: the fibre line is extended to both aponeurosis lines by the tool (host's linear
+// extrapolation), so nobody has to extrapolate by eye; the same clicks give the angle
+function cross(a, b, c, d) {
+  const r = [b[0] - a[0], b[1] - a[1]], s = [d[0] - c[0], d[1] - c[1]], den = r[0] * s[1] - r[1] * s[0];
+  if (Math.abs(den) < 1e-9) return null;
+  const t = ((c[0] - a[0]) * s[1] - (c[1] - a[1]) * s[0]) / den;
+  return [a[0] + t * r[0], a[1] + t * r[1]];
+}
+function finishEasy() {
+  const [f0, f1, s0, s1, d0, d1] = pending; pending = [];
+  const sup = cross(f0, f1, s0, s1), deep = cross(f0, f1, d0, d1);
+  const ok = sup && deep && dist(sup, deep) * item.mm_per_pixel < 300 && angle([f0, f1], [d0, d1]) > 1;
+  if (!ok) { status("fibre is parallel to a line: pick a steeper fibre", true); refresh(); return; }
+  rec.fl.push(round([deep, sup])); rec.pa.push({ fasc: round([f0, f1]), apo: round([d0, d1]) });
+  rec.easy = (rec.easy || []).concat([{ fibre: round([f0, f1]), sup: round([s0, s1]), deep: round([d0, d1]) }]);
+  afterShape();
+}
 function finishFascicle() {
+  if (mode === "fl" && quick()) return;
   if (mode === "fl" && pending.length >= 2) { rec.fl.push(round(pending)); pending = []; afterShape(); }
   refresh();
 }
@@ -179,7 +207,9 @@ function afterShape() { dirty = true; if (rec[mode].length >= NEED[mode]) { cons
 
 function undo() {
   if (pending.length) pending.pop();
-  else {
+  else if (quick() && rec.fl.length && rec.pa.length) {  // one quick fascicle made both shapes
+    rec.fl.pop(); rec.pa.pop(); if (rec.easy) rec.easy.pop(); mode = "fl"; dirty = true;
+  } else {
     for (const k of [mode, "pa", "fl", "mt"]) if (rec[k].length) { rec[k].pop(); mode = k; dirty = true; break; }
   }
   refresh();
@@ -210,7 +240,8 @@ function refresh() {
   $("prog").style.width = (100 * done / queue.length) + "%"; $("progtxt").textContent = `${done}/${queue.length}`;
   const clip = item.clip === null ? "" : ` · clip ${item.clip} frame ${item.clip_pos + 1}/5${item.optional ? " (optional)" : ""}`;
   $("imginfo").textContent = `${qi + 1}/${queue.length} · ${item.image_id} · ${item.layout} · ${item.mm_per_pixel.toFixed(4)} mm/px${clip}${rec.skip ? " · SKIPPED" : ""}`;
-  const hints = { mt: "Thickness: click superficial inner edge, then deep inner edge", fl: "Fascicle: deep apo → along fibre → superficial apo, Enter to finish", pa: paStage() === "fasc" ? "Angle: 2 clicks along the fascicle at the deep apo" : "Angle: 2 clicks along the deep aponeurosis" };
+  const easy = ["Fascicle: 2 clicks along one clear fibre (green)", "Now 2 clicks along the UPPER thick line (its bottom edge)", "Now 2 clicks along the LOWER thick line (its top edge)"];
+  const hints = { mt: "Thickness: click superficial inner edge, then deep inner edge", fl: quick() ? easy[Math.floor(pending.length / 2)] : "Fascicle: deep apo → along fibre → superficial apo, Enter to finish", pa: paStage() === "fasc" ? "Angle: 2 clicks along the fascicle at the deep apo" : "Angle: 2 clicks along the deep aponeurosis" };
   $("hint").textContent = nextMode() === null && !pending.length ? `All ${NEED.mt + NEED.fl + NEED.pa} drawn. N = save & next` : hints[mode];
   draw();
 }
@@ -260,7 +291,12 @@ $("bfit").onclick = fit;
 $("br").oninput = draw; $("ct").oninput = draw;
 $("optional").onchange = async () => { const id = item.image_id; buildQueue(); qi = Math.max(0, queue.findIndex((m) => m.image_id === id)); await load(); };
 $("bjump").onclick = async () => { qi = firstUnmeasured(); await load(); };
-function setNeed() { const n = $("quick").checked ? 1 : 3; NEED = { mt: n, fl: n, pa: n }; }
+function quick() { return $("quick").checked; }
+function setNeed() {
+  const n = quick() ? 1 : 3; NEED = { mt: n, fl: n, pa: n };
+  $("bpa").style.display = quick() ? "none" : "";  // quick: the angle comes from the fascicle clicks
+  $("bfl").textContent = quick() ? "2 Fibre + lines" : "2 Fascicles";
+}
 try { $("quick").checked = localStorage.getItem("labeler.quick") === "1"; } catch (e) { /* storage blocked */ }
 setNeed();
 $("quick").onchange = () => {
