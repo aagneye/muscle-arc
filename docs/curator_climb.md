@@ -235,3 +235,16 @@ Lessons:
   data, `scripts/calibrate_to_labels.py`) can remove most of the FL error; the labeler queue
   already interleaves devices (first 60 images = about 10 per device). Hard-coding per-device
   offsets read off the board would break the "no leaderboard values" guardrail: owner's call.
+
+## 2026-10-28
+
+| Submission | Public | Note |
+|---|---|---|
+| cand_med5ud (median of k5ud, s2ud, s3ud, k768ud, kskelud) | **0.37731** | new best; -0.0066 vs med3ud |
+| FL +/-10000 on left_ruler_5cm | 83.88120 / 83.99584 | n=31, FL MAE 8.08 mm, bias -6.86 mm |
+| FL +/-10000 on png_left_ruler | 54.25290 / 54.34047 | n=20, FL MAE 8.12 mm, bias -8.12 mm |
+
+Lessons:
+- More diverse runs (768-px fascicles, skeleton-recall loss) help through measurement-level median fusion: med5 beats med3 by 0.0066.
+- Per-device FL bias map (k10, public): siemens +8.20 (n=32), left_ruler_5cm -6.86 (n=31), png_left_ruler -8.12 (n=20). On png the error is almost all bias (MAE 8.12 = |bias|). The remaining 20 public images (bottom_ruler_853/512, fixed_644x1088) are not probed yet.
+- Removing these biases is the largest available gain. Pipeline correction must come from the owner's manual labels (labeler quick mode), not from these leaderboard numbers.
