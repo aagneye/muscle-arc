@@ -50,6 +50,28 @@ def test_image_without_layout_is_unchanged(dc):
     assert out.loc[0, "fl_mm"] == pytest.approx(72.0) and out.loc[0, "mt_mm"] == pytest.approx(20.5)
 
 
+def test_shrink_pulls_toward_the_layout_mean_and_keeps_it(dc):
+    cand = pd.DataFrame({"image_id": ["a", "b", "c", "d"], "pa_deg": [10.0, 20.0, 30.0, 5.0],
+                         "fl_mm": [60.0, 80.0, 100.0, 50.0], "mt_mm": 20.0})
+    layouts = pd.Series({"a": "L", "b": "L", "c": "L", "d": "M"})
+    out = dc.apply_calibration(cand, layouts, {"L": {"fl_mul": 0.5, "fl_shrink": 0.5, "pa_shrink": 0.0}})
+    assert out["fl_mm"].tolist() == pytest.approx([35.0, 40.0, 45.0, 50.0])
+    assert out["pa_deg"].tolist() == pytest.approx([20.0, 20.0, 20.0, 5.0])
+
+
+def test_match_means_reproduces_the_reference_layout_means(dc):
+    cand, layouts = _cand()
+    ref = cand.copy()
+    ref["fl_mm"] = ref["fl_mm"] * [0.9, 1.1, 1.2, 1.0]
+    ref["pa_deg"] = ref["pa_deg"] + [1.0, -2.0, 0.5, 0.0]
+    calib = dc.match_means(cand, ref, layouts)
+    assert set(calib) == {"siemens_right_ruler", "left_ruler_5cm", "png_left_ruler"}
+    out = dc.apply_calibration(cand, layouts, calib)
+    assert out["fl_mm"].iloc[:3].tolist() == pytest.approx(ref["fl_mm"].iloc[:3].tolist(), rel=1e-3)
+    assert out["pa_deg"].iloc[:3].tolist() == pytest.approx(ref["pa_deg"].iloc[:3].tolist(), abs=1e-3)
+    assert out.loc[3, "fl_mm"] == cand.loc[3, "fl_mm"]
+
+
 def test_unknown_correction_is_rejected(dc):
     cand, layouts = _cand()
     with pytest.raises(KeyError):
