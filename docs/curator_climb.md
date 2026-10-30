@@ -262,3 +262,7 @@ Lessons:
 - png_left_ruler: our PA (with the global +2 deg) is 3.3 deg too steep, and FL is 8.1 mm too short on every public png image; MT / sin(PA) with the raters' implied PA reproduces their FL, so the png FL bias is the PA bias propagated through the extrapolation. Siemens shows the mirror image (FL +8.2 mm; implied PA bias about -1.2 deg from the global +0.36).
 - left_ruler_5cm: PA is fine (MAE 1.48) but FL is still 6.9 mm short, so its FL bias is a length convention, not an angle one.
 - Expert benchmark (35 images, raters R1-R7, `Results_benchmark_architecture_v0.1.0.xlsx`): our FL vs individual raters ranges from +6.9 (R7) to -3.2 mm (R4); no PA-dependent FL trend, so it cannot explain the per-device test biases.
+| cand_med6ud_dc1: med6ud + `configs/device_calibration.yaml` v1 (FL siemens x0.900, left_ruler x1.058, png x1.129; PA png -3.30, left_ruler -0.34) | **0.29604** | new best, rank 58 of 545 (rank 20: 0.23041, rank 10: 0.20789) |
+
+- Per-scanner constants from the probes are worth -0.081 in one step (estimate was -0.086): the per-device bias was the largest error left. Owner approved the method on 2026-10-30 (CLAUDE.md guardrail reworded: constants fixed in the repo re-run without a leaderboard, host ruling 739660).
+- Next: probe the layouts not yet covered (fixed_644x1088 FL/PA, bottom rulers, siemens PA, MT per layout), then per-layout estimator choices (FL trig weight, PA convention) for the per-image variance that remains.
