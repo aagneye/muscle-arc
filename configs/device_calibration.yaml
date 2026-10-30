@@ -1,0 +1,19 @@
+# Per-scanner corrections of the final measurements (scripts/apply_device_calibration.py).
+#
+# Hand-set constants read off leaderboard probes (scripts/lb_probe.py, +/-K pairs per device
+# layout, docs/curator_climb.md 2026-10-27 to 2026-10-30) and fixed here, so the pipeline
+# re-runs on new data without a leaderboard (host ruling 739660, owner decision 2026-10-30).
+# The layout of an image is the `source` the scale decoder assigns
+# (muscle_arc.geometry.exact_scale.decode_exact_scale); layouts not listed stay unchanged.
+#
+# fl_mul multiplies FL; pa_add (deg), mt_add and fl_add (mm) are added.
+# Values are relative to the med6ud measurements (median of 6 runs, upper_dense pairing):
+#   FL: public bias of k10 (siemens +8.20 n=32, left_ruler_5cm -6.86 n=31, png -8.12 n=20)
+#       moved by the layout's mean med6ud - k10 shift, as a ratio of the layout's mean FL.
+#   PA: public bias of med6ud (png +3.30 n=20, left_ruler_5cm +0.34 n=31).
+version: 1
+base: cand_med6ud
+layouts:
+  siemens_right_ruler: {fl_mul: 0.900}
+  left_ruler_5cm: {fl_mul: 1.058, pa_add: -0.34}
+  png_left_ruler: {fl_mul: 1.129, pa_add: -3.30}
