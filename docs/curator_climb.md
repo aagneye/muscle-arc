@@ -248,3 +248,17 @@ Lessons:
 - More diverse runs (768-px fascicles, skeleton-recall loss) help through measurement-level median fusion: med5 beats med3 by 0.0066.
 - Per-device FL bias map (k10, public): siemens +8.20 (n=32), left_ruler_5cm -6.86 (n=31), png_left_ruler -8.12 (n=20). On png the error is almost all bias (MAE 8.12 = |bias|). The remaining 20 public images (bottom_ruler_853/512, fixed_644x1088) are not probed yet.
 - Removing these biases is the largest available gain. Pipeline correction must come from the owner's manual labels (labeler quick mode), not from these leaderboard numbers.
+
+## 2026-10-29 / 2026-10-30
+
+| Submission | Public | Note |
+|---|---|---|
+| cand_med6ud (med5ud runs + k768skelud, 768-px fascicles with Skeleton Recall) | **0.37699** | new best by 0.0003: more runs no longer pay |
+| PA +/-1000 on png_left_ruler (base med6ud) | 11.16095 / 11.08973 | n=20, PA MAE 3.63 deg, bias **+3.30 deg** |
+| PA +/-1000 on left_ruler_5cm (base med6ud) | 17.07847 / 17.06725 | n=31, PA MAE 1.48 deg, bias +0.34 deg |
+
+Lessons:
+- Ensemble growth is exhausted (med3 0.38391, med5 0.37731, med6 0.37699).
+- png_left_ruler: our PA (with the global +2 deg) is 3.3 deg too steep, and FL is 8.1 mm too short on every public png image; MT / sin(PA) with the raters' implied PA reproduces their FL, so the png FL bias is the PA bias propagated through the extrapolation. Siemens shows the mirror image (FL +8.2 mm; implied PA bias about -1.2 deg from the global +0.36).
+- left_ruler_5cm: PA is fine (MAE 1.48) but FL is still 6.9 mm short, so its FL bias is a length convention, not an angle one.
+- Expert benchmark (35 images, raters R1-R7, `Results_benchmark_architecture_v0.1.0.xlsx`): our FL vs individual raters ranges from +6.9 (R7) to -3.2 mm (R4); no PA-dependent FL trend, so it cannot explain the per-device test biases.
