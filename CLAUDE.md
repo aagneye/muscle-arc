@@ -21,7 +21,8 @@ until it is reached; do not stop at intermediate wins.
    (`src/muscle_arc/geometry/umud_metric.py`, host notebook `paulritsche/umud-score`):
    S = (MAE_PA/6 + MAE_FL/12 + MAE_MT/3) / 3. Score candidates with
    `scripts/eval_local.py` against every available label set before spending a Kaggle
-   submission. Kaggle submissions (5/day) confirm, they do not steer.
+   submission. Kaggle submissions (5/day) confirm candidates; leaderboard probes
+   (`scripts/lb_probe.py`) measure per-scanner biases that local labels cannot.
 4. **Train on the free GPUs of the Azure VM** (`rogii-gpu`, 4x T4). Never stop or touch
    another project's processes; queue behind them (`scripts/vm_train_folds.sh` waits for
    free memory).
@@ -33,8 +34,12 @@ until it is reached; do not stop at intermediate wins.
 
 - **The GitHub repo is public.** Never commit test images, manual measurements of test
   images, or anything under `data/`. `data/labeling/` is git-ignored and must stay so.
-- Final pipeline must re-run on new data without any leaderboard values (host ruling,
-  discussion 739660). Manual test measurements may be used only as declared external data
-  for calibration/validation (host rulings 690868, 737782), never pasted as predictions.
+- Final pipeline must re-run on new data without a leaderboard (host ruling, discussion
+  739660). Hand-set constants chosen from earlier submissions are allowed because they are
+  fixed in the repo, e.g. the per-scanner corrections in `configs/device_calibration.yaml`
+  read off leaderboard probes (owner decision 2026-10-30). Code that needs leaderboard
+  scores at run time (automatic LB-weighted blending) is not. Manual test measurements may
+  be used only as declared external data for calibration/validation (host rulings 690868,
+  737782), never pasted as predictions.
 - Do not repeat known losers (see `docs/curator_climb.md`): OSF-selected geometry
   conventions, global OSF residual blends, stretch-resizing for DL_Track.
